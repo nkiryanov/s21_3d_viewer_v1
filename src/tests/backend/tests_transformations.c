@@ -15,7 +15,7 @@ static void add_value_to_object_coordinates(double value, object_t *object) {
   }
 
   object->x_min += value;
-  object->y_min  += value;
+  object->y_min += value;
   object->z_min += value;
   object->x_max += value;
   object->y_max += value;

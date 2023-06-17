@@ -1,13 +1,12 @@
 CMAKE_ROOT := .
 BUILD_DIR := ../build
+INSTALL_DIR := ../_install_dir
+
+COVERAGE_REPORT_DIR := $(BUILD_DIR)/coverage
+COVERAGE_REPORT := $(BUILD_DIR)/coverage.info
 
 SRC := $(shell find $(CMAKE_ROOT) -name "*.c" -o -name "*.cpp")
 HEADERS := $(shell find $(CMAKE_ROOT) -name "*.h" -o -name "*.hpp")
-
-INSTALL_DIR := $(BUILD_DIR)/_install_dir
-
-COVERAGE_REPORT := $(BUILD_DIR)/coverage.info
-COVERAGE_REPORT_DIR := $(BUILD_DIR)/coverage
 
 DCMAKE_BUILD_TYPE := Debug
 
@@ -22,13 +21,13 @@ lint:
 fmt:
 	@clang-format --style=Google --Werror -i $(SRC) $(HEADERS) && echo "Formatted"
 
-build: build_dir
+build:
 	cmake -S $(CMAKE_ROOT) -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=${DCMAKE_BUILD_TYPE}
-	cd $(BUILD_DIR) && cmake --build .
+	cmake --build $(BUILD_DIR)
 
 install: DCMAKE_BUILD_TYPE := Release
 install: build
-	cd $(BUILD_DIR) && cmake --install .
+	cmake --build $(BUILD_DIR) --target install
 
 uninstall:
 	rm -rf $(INSTALL_DIR)
@@ -36,9 +35,6 @@ uninstall:
 test: tests
 tests: build
 	make -C $(BUILD_DIR) test
-
-valgrind_tests: tests
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose $(TESTS_EXEC)
 
 coverage_report: tests
 	lcov --capture --directory $(BUILD_DIR)/src/ --output-file=$(COVERAGE_REPORT)
@@ -64,7 +60,7 @@ echo:
 	@echo "HEADERS = ${HEADERS}"
 
 clean: uninstall
-	rm -rf $(BUILD_DIR)/*
+	rm -rf $(BUILD_DIR)
 
 build_dir:
 	mkdir -p $(BUILD_DIR)
