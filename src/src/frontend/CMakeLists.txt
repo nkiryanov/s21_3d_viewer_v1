@@ -1,9 +1,10 @@
-file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/include/frontend/*.h")
+file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/include/frontend/*.hpp")
 
 qt_add_library(
   "3D_Viewer_frontend" STATIC
   model_viewer.cpp
-  model_viewer.ui
+  object_gl_widget.cpp
+  ui/model_viewer.ui
   ${HEADER_LIST}
 )
 
@@ -15,5 +16,5 @@ target_include_directories(
 
 target_link_libraries(
   "3D_Viewer_frontend"
-  PRIVATE Qt6::Widgets Qt6::OpenGLWidgets
+  PUBLIC "3D_Viewer_backend" Qt6::Widgets Qt6::OpenGLWidgets
 )
