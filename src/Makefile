@@ -1,42 +1,66 @@
-CC = gcc
-FLAGS = -Wall  -Wextra 
+CMAKE_ROOT := .
+BUILD_DIR := ../build
+INSTALL_DIR := ../_install_dir
 
-all: clean install
-	./build/front.app/Contents/MacOS/front
-	
-install:
-	mkdir build
-	cd ./build; cmake ../front/CMakeLists.txt; cmake --build .
+COVERAGE_REPORT_DIR := $(BUILD_DIR)/coverage
+COVERAGE_REPORT := $(BUILD_DIR)/coverage.info
+
+SRC := $(shell find $(CMAKE_ROOT) -name "*.c" -o -name "*.cpp")
+HEADERS := $(shell find $(CMAKE_ROOT) -name "*.h" -o -name "*.hpp")
+
+DCMAKE_BUILD_TYPE := Debug
+
+.PHONY: lint fmt build test tests echo clean install uninstall coverage_report gcov_report
+
+all: install
+
+lint:
+	@clang-format --style=Google --Werror --dry-run $(SRC) $(HEADERS) && echo "Clagn-format passed"
+	@cppcheck $(SRC) $(HEADERS)
+
+fmt:
+	@clang-format --style=Google --Werror -i $(SRC) $(HEADERS) && echo "Formatted"
+
+build:
+	cmake -S $(CMAKE_ROOT) -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=${DCMAKE_BUILD_TYPE}
+	cmake --build $(BUILD_DIR)
+
+install: DCMAKE_BUILD_TYPE := Release
+install: build
+	cmake --build $(BUILD_DIR) --target install
 
 uninstall:
-	rm -rf build
+	rm -rf $(INSTALL_DIR)
 
-clean: 
-	rm -rf *.o *.a *.g* 3DViewer
+test: tests
+tests: build
+	make -C $(BUILD_DIR) test
 
+coverage_report: tests
+	lcov --capture --directory $(BUILD_DIR)/src/ --output-file=$(COVERAGE_REPORT)
 
-dvi:
-	open 1.html
+gcov_report: coverage_report
+	genhtml $(COVERAGE_REPORT) --output-directory $(COVERAGE_REPORT_DIR)
+	open $(COVERAGE_REPORT_DIR)/index.html
 
-dist: 
-	cd ..; tar -cvf src.tar src
+dvi: build
+	@echo
+	@echo "Trying to create docs with Doxygen"
+	@echo "Please be sure it installed"
+	@echo
+	cd $(BUILD_DIR) && make docs
+	cd $(BUILD_DIR) && open ./docs/html/index.html
 
-# for linux: -lrt -lm -lsubunit
-test: clean 
-	$(CC) $(FLAGS) model/3DViewer.c model/test.c -lcheck  -o test
-	./test
+dist:
+	mkdir -p $(INSTALL_DIR)/dist
+	tar cvzf $(INSTALL_DIR)/dist/archive.tgz \
+	app cmake docs include src tests CMakeLists.txt Makefile
 
-gcov_report: clean
-	$(CC) --coverage model/test.c model/3DViewer.c $(FLAGS) -lcheck -o test
-	./test
-	lcov -t "test" -o test.info -c -d .
-	genhtml -o report test.info
-#open report/index.html
+echo:
+	@echo "HEADERS = ${HEADERS}"
 
-rebuild: clean all
+clean: uninstall
+	rm -rf $(BUILD_DIR)
 
-
-21: clean
-	$(CC) $(FLAGS) model/3DViewer.c -o 3DViewer
-	./3DViewer
-
+build_dir:
+	mkdir -p $(BUILD_DIR)
