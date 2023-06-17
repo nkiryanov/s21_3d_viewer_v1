@@ -1,6 +1,9 @@
-#include "frontend/model_viewer.h"
+#include "frontend/model_viewer.hpp"
 
-#include "./ui_model_viewer.h"
+#include "frontend/object_gl_widget.hpp"
+#include "ui/ui_model_viewer.h"
+
+namespace ViewerFrontend {
 
 ModelViewer::ModelViewer(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::ModelViewer) {
@@ -8,3 +11,5 @@ ModelViewer::ModelViewer(QWidget *parent)
 }
 
 ModelViewer::~ModelViewer() { delete ui; }
+
+}  // namespace ViewerFrontend

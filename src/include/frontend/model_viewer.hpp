@@ -3,11 +3,15 @@
 
 #include <QMainWindow>
 
+#include "frontend/object_gl_widget.hpp"
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class ModelViewer;
 }
 QT_END_NAMESPACE
+
+namespace ViewerFrontend {
 
 class ModelViewer : public QMainWindow {
   Q_OBJECT
@@ -18,5 +22,9 @@ class ModelViewer : public QMainWindow {
 
  private:
   Ui::ModelViewer *ui;
+  ObjectGLWidget *object_widget;
 };
+
+}  // namespace ViewerFrontend
+
 #endif  // FRONTEND_MODEL_VIEWER_H_

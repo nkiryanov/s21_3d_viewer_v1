@@ -1,10 +1,12 @@
 #include <QApplication>
 
-#include "frontend/model_viewer.h"
+#include "frontend/model_viewer.hpp"
 
 int main(int argc, char *argv[]) {
-  QApplication a(argc, argv);
-  ModelViewer w;
-  w.show();
-  return a.exec();
+  QApplication application(argc, argv);
+
+  ViewerFrontend::ModelViewer window;
+  window.show();
+
+  return application.exec();
 }

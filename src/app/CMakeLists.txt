@@ -1,6 +1,6 @@
 qt_add_executable("3D_Viewer" main.cpp)
 
-target_link_libraries("3D_Viewer" PRIVATE "3D_Viewer_frontend" Qt6::Widgets)
+target_link_libraries("3D_Viewer" PRIVATE "3D_Viewer_frontend")
 
 set_target_properties("3D_Viewer" PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER s21.model_3d_viewer.com
