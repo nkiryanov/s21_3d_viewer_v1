@@ -64,3 +64,11 @@ clean: uninstall
 
 build_dir:
 	mkdir -p $(BUILD_DIR)
+
+
+
+21: 
+	rm -rf *.o *.a *.g* out
+	gcc -Wall -Werror -Wextra  src/backend/object_t.c -o out
+	./out
+	rm -rf *.o *.a *.g* out
