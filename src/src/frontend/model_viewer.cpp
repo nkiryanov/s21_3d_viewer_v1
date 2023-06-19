@@ -1,5 +1,7 @@
 #include "frontend/model_viewer.hpp"
 
+#include <QTimer>
+
 #include "frontend/object_gl_widget.hpp"
 #include "ui/ui_model_viewer.h"
 
@@ -12,6 +14,10 @@ ModelViewer::ModelViewer(QWidget *parent)
   iniModelViewerResources();
 
   ui->setupUi(this);
+  timer = new QTimer(this);
+  timer->start(50);
+
+  connect(timer, &QTimer::timeout, ui->ObjectGLWidget, &ObjectGLWidget::redraw);
 }
 
 ModelViewer::~ModelViewer() { delete ui; }

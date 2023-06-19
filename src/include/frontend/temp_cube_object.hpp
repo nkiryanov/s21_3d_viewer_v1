@@ -15,12 +15,12 @@ static vector_t cube_vertices[8] = {
     {-1.0, 1.0, 1.0},   {-1.0, 1.0, -1.0},
 };
 
-static uint32_t cube_polygon_vertex_indexes[12][3] = {
-    {2, 3, 4}, {8, 7, 6}, {5, 6, 2}, {6, 7, 3}, {3, 7, 8}, {1, 4, 8},
-    {1, 2, 4}, {5, 8, 6}, {1, 5, 2}, {2, 6, 3}, {4, 3, 8}, {5, 1, 8},
+static uint32_t cube_polygon_vertex_indexes[][3] = {
+    {1, 2, 3}, {7, 6, 5}, {4, 5, 1}, {5, 6, 2}, {2, 6, 7}, {0, 3, 7},
+    {0, 1, 3}, {4, 7, 5}, {0, 4, 1}, {1, 5, 2}, {3, 2, 7}, {4, 0, 7},
 };
 
-static polygon_t cube_polygons[12] = {
+static polygon_t cube_polygons[] = {
     {.vertex_indexes = cube_polygon_vertex_indexes[0], .amount = 3},
     {.vertex_indexes = cube_polygon_vertex_indexes[1], .amount = 3},
     {.vertex_indexes = cube_polygon_vertex_indexes[2], .amount = 3},

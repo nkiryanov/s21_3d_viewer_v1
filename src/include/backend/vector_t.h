@@ -3,7 +3,7 @@
 
 /**
  * @brief Structure to store 3D vector.
- * 
+ *
  * The vector is also capable of storing Wavefront .obj vertex coordinates.
  */
 typedef struct vector_t {
