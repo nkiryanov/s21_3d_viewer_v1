@@ -4,12 +4,12 @@
 extern "C" {
 #include "backend/object_t.h"
 #include "backend/polygon_t.h"
-#include "backend/vertex_t.h"
+#include "backend/vector_t.h"
 }
 
 #include <cstdint>
 
-static vertex_t cube_vertices[8] = {
+static vector_t cube_vertices[8] = {
     {1.0, -1.0, -1.0},  {1.0, -1.0, 1.0},      {-1.0, -1.0, 1.0},
     {-1.0, -1.0, -1.0}, {1.0, 1.0, -0.999999}, {0.999999, 1.0, 1.000001},
     {-1.0, 1.0, 1.0},   {-1.0, 1.0, -1.0},
@@ -36,7 +36,7 @@ static polygon_t cube_polygons[12] = {
 };
 
 static object_t cube_object = {
-    .vertices = (vertex_t *)cube_vertices,
+    .vertices = (vector_t *)cube_vertices,
     .vertices_amount = 8,
     .polygons = (polygon_t *)cube_polygons,
     .polygons_amount = 12,

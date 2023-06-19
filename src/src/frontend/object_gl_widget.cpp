@@ -3,7 +3,7 @@
 extern "C" {
 #include "backend/polygon_t.h"
 #include "backend/transformations.h"
-#include "backend/vertex_t.h"
+#include "backend/vector_t.h"
 }
 
 #include <cmath>
@@ -27,7 +27,7 @@ void ObjectGLWidget::paintGL() {
 
     for (uint32_t j = 0; j != polygon.amount; ++j) {
       uint32_t vertex_index = polygon.vertex_indexes[j];
-      vertex_t vertex = object->vertices[vertex_index];
+      vector_t vertex = object->vertices[vertex_index];
 
       glVertex3d(vertex.x, vertex.y, vertex.z);
     }
