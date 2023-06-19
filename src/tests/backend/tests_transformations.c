@@ -71,6 +71,45 @@ START_TEST(test_normalize_vertices_centers_vertices_coordinates) {
 }
 END_TEST
 
+START_TEST(test_move_x_actually_move_vertices_by_x) {
+  move_object_x_axis(100, &object);
+
+  vertex_t first_vertex = object.vertices[0];
+  vertex_t second_vertex = object.vertices[1];
+  ck_assert_double_eq(first_vertex.x, 150);
+  ck_assert_double_eq(first_vertex.y, 100);
+  ck_assert_double_eq(first_vertex.z, 200);
+  ck_assert_double_eq(second_vertex.x, 50);
+  ck_assert_double_eq(second_vertex.y, -100);
+  ck_assert_double_eq(second_vertex.z, -200);
+}
+
+START_TEST(test_move_y_actually_move_vertices_by_y) {
+  move_object_y_axis(100, &object);
+
+  vertex_t first_vertex = object.vertices[0];
+  vertex_t second_vertex = object.vertices[1];
+  ck_assert_double_eq(first_vertex.x, 50);
+  ck_assert_double_eq(first_vertex.y, 200);
+  ck_assert_double_eq(first_vertex.z, 200);
+  ck_assert_double_eq(second_vertex.x, -50);
+  ck_assert_double_eq(second_vertex.y, 0);
+  ck_assert_double_eq(second_vertex.z, -200);
+}
+
+START_TEST(test_move_z_actually_move_vertices_by_z) {
+  move_object_z_axis(100, &object);
+
+  vertex_t first_vertex = object.vertices[0];
+  vertex_t second_vertex = object.vertices[1];
+  ck_assert_double_eq(first_vertex.x, 50);
+  ck_assert_double_eq(first_vertex.y, 100);
+  ck_assert_double_eq(first_vertex.z, 300);
+  ck_assert_double_eq(second_vertex.x, -50);
+  ck_assert_double_eq(second_vertex.y, -100);
+  ck_assert_double_eq(second_vertex.z, -100);
+}
+
 Suite *make_transformations_suite(void) {
   Suite *s = suite_create("Object transformations suite");
   TCase *tc = tcase_create("Core");
@@ -80,6 +119,9 @@ Suite *make_transformations_suite(void) {
 
   tcase_add_test(tc, test_normalize_vertices_set_vertices_coordinates_in_scale);
   tcase_add_test(tc, test_normalize_vertices_centers_vertices_coordinates);
+  tcase_add_test(tc, test_move_x_actually_move_vertices_by_x);
+  tcase_add_test(tc, test_move_y_actually_move_vertices_by_y);
+  tcase_add_test(tc, test_move_z_actually_move_vertices_by_z);
 
   return s;
 }

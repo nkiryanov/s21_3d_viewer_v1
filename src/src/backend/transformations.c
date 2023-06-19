@@ -64,3 +64,21 @@ void normalize_vertices(double max_scale, object_t *object) {
   normalize_vertices_alignment(object);
   normalize_vertices_coordinates(max_scale, object);
 }
+
+void move_object_x_axis(double x, object_t *object) {
+  for (uint32_t i = 0; i != object->vertices_amount; ++i) {
+    object->vertices[i].x += x;
+  }
+}
+
+void move_object_y_axis(double y, object_t *object) {
+  for (uint32_t i = 0; i != object->vertices_amount; ++i) {
+    object->vertices[i].y += y;
+  }
+}
+
+void move_object_z_axis(double z, object_t *object) {
+  for (uint32_t i = 0; i != object->vertices_amount; ++i) {
+    object->vertices[i].z += z;
+  }
+}
