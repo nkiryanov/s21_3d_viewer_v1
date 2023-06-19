@@ -5,6 +5,7 @@ qt_add_library(
   model_viewer.cpp
   object_gl_widget.cpp
   ui/model_viewer.ui
+  resources.qrc
   ${HEADER_LIST}
 )
 

@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Qt spefific sttings cause the poject use it
 find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets)
 qt_standard_project_setup()
+set(CMAKE_AUTORCC ON)
 
 # Let's nicely support folders in IDEs
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
