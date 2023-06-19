@@ -17,13 +17,13 @@ typedef struct object_t {
   polygon_t *polygons;      /**< Pointer to array of polygons */
   uint32_t polygons_amount; /**< Amount of the polygons in array */
 
-  double x_max; /**< Max value of `x` among the vertices */
-  double y_max; /**< Max value of `y` among the vertices */
-  double z_max; /**< Max value of `y` among the vertices */
+  double *x_max; /**< Pointer to max value of `x` among the vertices */
+  double *y_max; /**< Pointer to max value of `y` among the vertices */
+  double *z_max; /**< Pointer to max value of `y` among the vertices */
 
-  double x_min; /**< Min value of `x` among the vertices */
-  double y_min; /**< Min value of `y` among the vertices */
-  double z_min; /**< Min value of `z` among the vertices */
+  double *x_min; /**< Pointer to min value of `x` among the vertices */
+  double *y_min; /**< Pointer to min value of `y` among the vertices */
+  double *z_min; /**< Pointer to min value of `z` among the vertices */
 } object_t;
 
 #endif  // BACKEND_OBJECT_T_H_

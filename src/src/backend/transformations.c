@@ -5,30 +5,31 @@
 
 #include "backend/object_t.h"
 
-static double get_coordinates_midpoint(double first, double second) {
+static double get_coordinates_midpoint(const double *first,
+                                       const double *second) {
   double min_value;
   double max_value;
 
-  if (first < second) {
-    min_value = first;
-    max_value = second;
+  if (*first < *second) {
+    min_value = *first;
+    max_value = *second;
   } else {
-    min_value = second;
-    max_value = first;
+    min_value = *second;
+    max_value = *first;
   }
 
   return min_value + (max_value - min_value) / 2;
 }
 
 static double get_absolute_max_among_coordinates(const object_t *object) {
-  double max_value = fabs(object->x_max);
+  double max_value = fabs(*object->x_max);
 
-  double possible_absolute_max_values[5] = {
+  double *possible_absolute_max_pointers[5] = {
       object->y_max, object->z_max, object->x_min, object->y_min, object->z_min,
   };
 
   for (int i = 0; i != 5; ++i) {
-    double possible_absolute_max = fabs(possible_absolute_max_values[i]);
+    double possible_absolute_max = fabs(*possible_absolute_max_pointers[i]);
     if (possible_absolute_max > max_value) max_value = possible_absolute_max;
   }
 
@@ -45,13 +46,6 @@ static void normalize_vertices_alignment(object_t *object) {
     object->vertices[i].y -= y_midpoint;
     object->vertices[i].z -= z_midpoint;
   }
-
-  object->x_min -= x_midpoint;
-  object->y_min -= y_midpoint;
-  object->z_min -= z_midpoint;
-  object->x_max -= x_midpoint;
-  object->y_max -= y_midpoint;
-  object->z_max -= z_midpoint;
 }
 
 static void normalize_vertices_coordinates(double max_scale, object_t *object) {
@@ -64,13 +58,6 @@ static void normalize_vertices_coordinates(double max_scale, object_t *object) {
     object->vertices[i].y /= scale;
     object->vertices[i].z /= scale;
   }
-
-  object->x_min /= scale;
-  object->y_min /= scale;
-  object->z_min /= scale;
-  object->x_max /= scale;
-  object->y_max /= scale;
-  object->z_max /= scale;
 }
 
 void normalize_vertices(double max_scale, object_t *object) {

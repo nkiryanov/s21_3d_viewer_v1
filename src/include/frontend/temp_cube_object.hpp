@@ -41,12 +41,12 @@ static object_t cube_object = {
     .polygons = (polygon_t *)cube_polygons,
     .polygons_amount = 12,
 
-    .x_min = -1.0,
-    .y_min = -1.0,
-    .z_min = -1.0,
-    .x_max = 1.0,
-    .y_max = 1.0,
-    .z_max = 1.0,
+    .x_min = &(cube_vertices[2].x),
+    .y_min = &(cube_vertices[0].y),
+    .z_min = &(cube_vertices[0].z),
+    .x_max = &(cube_vertices[0].x),
+    .y_max = &(cube_vertices[4].y),
+    .z_max = &(cube_vertices[1].z),
 };
 
 #endif  // FRONTEND_TEMP_CUBE_OBJECT_H_
