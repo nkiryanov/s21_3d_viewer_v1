@@ -58,6 +58,7 @@ CMakeLists.txt.user
 
 # macOS specific files
 .DS_Store
+.cache/
 
 # VScode settings
 .vscode/
