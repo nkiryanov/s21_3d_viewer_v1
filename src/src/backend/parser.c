@@ -1,11 +1,10 @@
 #include "backend/parser.h"
 #include "backend/object_t.h"
 
-
 // int main(){
     
 //     object_t object_data;
-//     int err = f_parser("src/backend/1.obj", &object_data);
+//     int err = parser("src/backend/1.obj", &object_data);
 //     printf("err = %d\n", err);
 //     if (err == 0){ 
 
@@ -15,7 +14,7 @@
 //     return 0;
 // }
 
-int is_empty_str(char *str_f){
+static int is_empty_str(char *str_f){
     int res = 1;
     int i = 0;
     char ch;
@@ -30,7 +29,7 @@ int is_empty_str(char *str_f){
     return res;
 }
 
-int f_parser(char *file_model, object_t *object_data){
+int parser(char *file_model, object_t *object_data){
     int err = 0;
 
     //откроем файл 
@@ -46,14 +45,16 @@ int f_parser(char *file_model, object_t *object_data){
         f_clean_object_data(object_data);
 
         //посчитаем кол-во строк начинающихся с 'v' и 'f'
-        err = f_countvf(file, object_data);
+        int len_max_str = 0;
+        err = f_countvf(file, object_data, &len_max_str);
+        len_max_str++;
         rewind(file);
         
         // выделим память для vertex и polygon, тк мы узнали кол-во строк
         if (err == 0) { err = f_calloc_vertices(object_data);}
 
         //заполняем структуру vertex и polygon
-        if (err == 0) { err = f_getstruct(file, object_data);}
+        if (err == 0) { err = f_getstruct(file, object_data, len_max_str);}
 
         // если у нас выделилась память, но дальше была ошибка, освободим ее
         if (err != 0) { f_free_vertices(object_data); f_clean_object_data(object_data);}
@@ -72,36 +73,56 @@ void f_clean_object_data(object_t *object_data){
     object_data->polygons_amount = 0;
 }
 
-int f_countvf(FILE *file, object_t *object_data){
-    int err = 0;
-
-    // парсим построково и считаем строки vertices и polygons
-    char str_f[2048] = {'\0'};
-    while (fgets(str_f, sizeof str_f, file) != NULL) {
-        // если в строке меньше 7 символов, парсим дальше
-        // тк мин нормальная строка = 7 символов 'v 1 2 3'
-        if (strlen(str_f) < 7){
-            continue;
+static int f_countvf(FILE *file, object_t *Data, int *len_max_str){ 
+     
+    int err = 0; 
+    char ch = '\0';  
+    int len_tmp_str = 0; 
+ 
+    // парсим посимвольно и считаем строки V и P 
+    while ((ch = fgetc(file))) { 
+        len_tmp_str++; 
+        if (ch == EOF) {
+            if(len_tmp_str > *len_max_str) {
+                *len_max_str = len_tmp_str;  
+            }
+            len_tmp_str = 0;
+            break;
         }
-        // если строка начинается с 'v ' будем и она не пуста    
-        if (str_f[0] == 'v' && str_f[1] == ' '){
-            object_data->vertices_amount++;
+                 
+        if (ch == '\n') {  
+            if(len_tmp_str > *len_max_str) {
+                *len_max_str = len_tmp_str;  
+            }
+                len_tmp_str = 0;
+        } 
+         
+        // если строка начинается с 'v '   
+        if (ch == 'v' &&  len_tmp_str == 1){ 
+            if ((ch = fgetc(file)) && ch == ' ') { 
+                Data->vertices_amount++; 
+            } 
+            len_tmp_str++; 
 
-        } else if (str_f[0] == 'f' && str_f[1] == ' '){
-            object_data->polygons_amount++;
-        }
-    }
-    //printf("%d %d\n",object_data->vertices_amount, object_data->polygons_amount);
-
-    // если нет ни одной строки с v или f
-    if (object_data->vertices_amount == 0 || object_data->polygons_amount == 0){
-        err = 1;
-    }
-    
-    return err;
+        } else if (ch == 'f' &&  len_tmp_str == 1){ 
+            if ((ch = fgetc(file)) && ch == ' ') { 
+                Data->polygons_amount++; 
+            } 
+            len_tmp_str++; 
+        }    
+    } 
+     printf("len = %d\n",*len_max_str); 
+    //printf("%d %d\n",Data->vertices_amount, Data->polygons_amount); 
+ 
+    // если нет ни одной строки с v или f 
+    if (Data->vertices_amount == 0 || Data->polygons_amount == 0){ 
+        err = 1; 
+    } 
+     
+    return err; 
 }
 
-int f_calloc_vertices(object_t *object_data){
+static int f_calloc_vertices(object_t *object_data){
     // выделим память на vertex и polygon
     int err = 0;
 
@@ -133,13 +154,13 @@ void f_free_vertices(object_t *object_data){
 
 }
 
-int f_getstruct(FILE *file, object_t *object_data){
+static int f_getstruct(FILE *file, object_t *object_data, int len_max_str){
     int err = 0;
     int rowV = 0; // проверянных строк v
     int rowP = 0; // проверянных строк f
 
     // парсим построково 
-    char str_f[2048] = {'\0'};
+    char str_f[len_max_str];
     while (fgets(str_f, sizeof str_f, file) != NULL) {
          //printf("строка: %s\n", str_f);
         // printf("len = %d\n", strlen(str_f));
@@ -173,7 +194,7 @@ int f_getstruct(FILE *file, object_t *object_data){
     return err;
 }
 
-int is_valid_sting(char *str_f){
+static int is_valid_sting(char *str_f){
     // проверим разрешенные символы
     int err = 0;
     int i = 1;
@@ -227,7 +248,7 @@ static int is_valid_face_sting(char *str_f, object_t *object_data, int *rowP){
     return err;
 }
 
-void f_set_vertices(char *str_f, object_t *object_data, int *rowV){
+static void f_set_vertices(char *str_f, object_t *object_data, int *rowV){
     // парс строки типа 'v 1 2 3'
     //printf("№ %d строка: %s", *rowV, str_f);
     
@@ -255,7 +276,7 @@ void f_set_vertices(char *str_f, object_t *object_data, int *rowV){
    
 }
 
-void f_set_polygons(char *str_f, object_t *object_data, int *rowP){
+static void f_set_polygons(char *str_f, object_t *object_data, int *rowP){
     // парс строки типа 'f 1 2 3'
     //printf("№ %d строка: %s", *rowP, str_f);
     
@@ -286,7 +307,7 @@ void f_set_polygons(char *str_f, object_t *object_data, int *rowP){
     } 
 }
 
-void f_printf(object_t *object_data){
+static void f_printf(object_t *object_data){
 
     printf("vertices = %d   polygons = %d\n", object_data->vertices_amount, object_data->polygons_amount);
 
@@ -305,4 +326,3 @@ void f_printf(object_t *object_data){
     }
     
 }
-
