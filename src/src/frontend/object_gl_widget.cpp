@@ -11,16 +11,16 @@ extern "C" {
 namespace ViewerFrontend {
 
 void ObjectGLWidget::initializeGL() {
+  object_normalize(0.5, object);
+
   initializeOpenGLFunctions();
 
-  glOrtho(-1.33, 1.33, -1, 1, -1.33, 1.33);
-
-  object_normalize(0.5, object);
+  glEnable(GL_DEPTH_TEST);
+  glLoadIdentity();
+  glOrtho(-1.33, 1.33, -1, 1, -10, 10);
 }
 
 void ObjectGLWidget::paintGL() {
-  glEnable(GL_DEPTH_TEST);
-  glMatrixMode(GL_PROJECTION);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   float color_part = 0.1;
@@ -29,7 +29,7 @@ void ObjectGLWidget::paintGL() {
     polygon_t polygon = object->polygons[i];
     glBegin(GL_LINE_LOOP);
 
-    glColor3f(color_part, color_part, color_part);
+    glColor3f(1.0, color_part, color_part);
 
     for (uint32_t j = 0; j != polygon.amount; ++j) {
       uint32_t vertex_index = polygon.vertex_indexes[j];
