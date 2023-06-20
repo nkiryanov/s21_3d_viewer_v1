@@ -19,10 +19,14 @@ class ObjectGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   ObjectGLWidget(QWidget *parent) : QOpenGLWidget(parent) {}
 
  private:
+  object_t *object = &cube_object;
+  double degree_step = 0.5;
+
   void initializeGL() override;
   void paintGL() override;
 
-  object_t *object = &cube_object;
+ public slots:
+  void redraw();
 };
 
 }  // namespace ViewerFrontend

@@ -2,6 +2,7 @@
 #define FRONTEND_MODEL_VIEWER_H_
 
 #include <QMainWindow>
+#include <QTimer>
 
 #include "frontend/object_gl_widget.hpp"
 
@@ -22,7 +23,8 @@ class ModelViewer : public QMainWindow {
 
  private:
   Ui::ModelViewer *ui;
-  ObjectGLWidget *object_widget;
+  ObjectGLWidget *object;
+  QTimer *timer;
 };
 
 }  // namespace ViewerFrontend
