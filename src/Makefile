@@ -64,3 +64,22 @@ clean: uninstall
 
 build_dir:
 	mkdir -p $(BUILD_DIR)
+
+
+# style:
+# 	clang-format -style=google -i src/backend/parser.c
+# 	clang-format -style=google -n src/backend/parser.c
+# 	clang-format -style=google -i include/backend/parser.h
+# 	clang-format -style=google -n include/backend/parser.h
+
+# 21: 
+# 	rm -rf *.o *.a *.g* out
+# 	gcc -Wall -Werror -Wextra  src/backend/parser.c -o out
+# 	./out
+# 	rm -rf *.o *.a *.g* out
+
+# val: 
+# 	rm -rf *.o *.a *.g* out
+# 	gcc -Wall -Werror -Wextra src/backend/parser.c -o out
+# 	valgrind --log-fd=1 --leak-check=full --log-file=log.txt -s ./out
+# 	rm -rf *.o *.a *.g* out

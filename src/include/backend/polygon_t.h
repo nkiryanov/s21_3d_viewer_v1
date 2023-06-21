@@ -10,8 +10,8 @@
  * normals according to the task.
  */
 typedef struct polygon_t {
-  uint32_t *vertex_indexes; /**< Pointer to array of vertex indexes */
-  uint32_t count_indices;          /**< Amount of the indexes */
+  int *vertex_indexes; /**< Pointer to array of vertex indexes */
+  int count_indices;          /**< Amount of the indexes */
 } polygon_t;
 
 #endif  // BACKEND_POLYGON_T_H_
