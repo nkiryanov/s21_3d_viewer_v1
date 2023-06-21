@@ -18,6 +18,7 @@ ModelViewer::ModelViewer(QWidget *parent)
   timer->start(50);
 
   connect(timer, &QTimer::timeout, ui->ObjectGLWidget, &ObjectGLWidget::redraw);
+
 }
 
 ModelViewer::~ModelViewer() { delete ui; }
