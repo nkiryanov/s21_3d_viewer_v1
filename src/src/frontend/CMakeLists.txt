@@ -5,13 +5,14 @@ qt_add_library(
   model_viewer.cpp
   object_gl_widget.cpp
   ui/model_viewer.ui
+  resources.qrc
   ${HEADER_LIST}
 )
 
 target_include_directories(
-    "3D_Viewer_frontend"
-    PUBLIC ../../include/
-    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
+  "3D_Viewer_frontend"
+  PUBLIC ../../include/
+  INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 target_link_libraries(
