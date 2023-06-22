@@ -14,13 +14,13 @@ extern "C" {
 
 namespace ViewerFrontend {
 
-enum class PointsRenderType {
+enum class PointsStyle {
   kNone = 0,
   kCircle = 1,
   kSquare = 2,
 };
 
-enum class LinesRenderType {
+enum class LinesStyle {
   kSolid = 0,
   kDashed = 1,
 };
@@ -28,31 +28,56 @@ enum class LinesRenderType {
 class ObjectGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
  public:
   ObjectGLWidget(QWidget *parent) : QOpenGLWidget(parent) {}
+  void loadObject();
 
  private:
-  object_t *object = &cube_object;
-  double degree_step = 0.5;
-
-  LinesRenderType lines_render_type = LinesRenderType::kDashed;
-  vector_t lines_color = {1.0, 1.0, 1.0};
-  double lines_width = 5.1;
-
-  PointsRenderType points_render_type = PointsRenderType::kCircle;
-  uint32_t points_size = 50;
-  vector_t points_color = {1.0, 0.0, 0.0};
-
+  object_t *object = nullptr;
   GLuint vertices_vbo;
+  std::vector<GLuint> polygons_ebos;
+
+  LinesStyle lines_style = LinesStyle::kSolid;
+  vector_t lines_color = {1.0, 1.0, 1.0};
+  double lines_width = 0.1;
+
+  PointsStyle points_style = PointsStyle::kNone;
+  uint32_t points_size = 10;
+  vector_t points_color = {1.0, 1.0, 1.0};
+
+  vector_t degree = {0.0, 0.0, 0.0};
+  vector_t position = {0.0, 0.0, 0.0};
+
+  double scaling = 100;
 
   void initializeGL() override;
   void paintGL() override;
 
-  void loadVertex();
+  void generateObjectBuffers();
+  void deleteObjectBuffers();
+  void loadPolygonsToBuffers();
+  void loadVerticesToBuffer();
 
-  void renderPointsIfNeeded();
   void renderLines();
-
+  void renderPointsIfNeeded();
 
  public slots:
+  void moveObjectX(double x);
+  void moveObjectY(double y);
+  void moveObjectZ(double z);
+
+  void rotateObjectX(double degree);
+  void rotateObjectY(double degree);
+  void rotateObjectZ(double degree);
+
+  void scaleObject(double percent);
+
+  void setLineWidth(double width);
+  void setLineColor(int r, int g, int b);
+  void setLineStyle(LinesStyle style);
+
+  void setPointsColor(int r, int g, int b);
+  void setPointsSize(double size);
+  void setPointsStyle(PointsStyle style);
+
   void redraw();
 };
 
