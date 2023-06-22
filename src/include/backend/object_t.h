@@ -5,7 +5,6 @@
 
 #include "polygon_t.h"
 #include "vector_t.h"
-#include "parser.h"
 
 /**
  * @brief Stores Waveforms .obj file data
@@ -20,4 +19,3 @@ typedef struct object_t {
 } object_t;
 
 #endif  // BACKEND_OBJECT_T_H_
-

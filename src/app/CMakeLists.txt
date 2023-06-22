@@ -10,8 +10,19 @@ set_target_properties("3D_Viewer" PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
+
 install(TARGETS "3D_Viewer"
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+add_executable(parser
+    parser.c
+)
+
+target_link_libraries("parser" PRIVATE "3D_Viewer_backend")
+
+install(TARGETS "parser"
+    RUNTIME DESTINATION .
 )
