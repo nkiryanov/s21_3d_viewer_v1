@@ -10,9 +10,9 @@ qt_add_library(
 )
 
 target_include_directories(
-    "3D_Viewer_frontend"
-    PUBLIC ../../include/
-    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
+  "3D_Viewer_frontend"
+  PUBLIC ../../include/
+  INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 target_link_libraries(
