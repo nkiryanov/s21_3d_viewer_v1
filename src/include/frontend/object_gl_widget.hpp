@@ -40,11 +40,12 @@ class ObjectGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   double lines_width = 0.1;
 
   PointsStyle points_style = PointsStyle::kNone;
-  uint32_t points_size = 10;
+  uint32_t points_size = 1;
   vector_t points_color = {1.0, 1.0, 1.0};
 
   vector_t degree = {0.0, 0.0, 0.0};
   vector_t position = {0.0, 0.0, 0.0};
+  vector_t background = {0.0, 0.0, 0.0};
 
   double scaling = 100;
 
@@ -71,14 +72,13 @@ class ObjectGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   void scaleObject(double percent);
 
   void setLineWidth(double width);
-  void setLineColor(int r, int g, int b);
+  void setLineColor(int red, int green, int blue);
   void setLineStyle(LinesStyle style);
 
-  void setPointsColor(int r, int g, int b);
+  void setPointsColor(int red, int green, int blue);
   void setPointsSize(double size);
   void setPointsStyle(PointsStyle style);
-
-  void redraw();
+  void setBackground(int red, int green, int blue);
 };
 
 }  // namespace ViewerFrontend

@@ -24,8 +24,9 @@ void ObjectGLWidget::paintGL() {
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  loadVerticesToBuffer();
+  glClearColor(background.x, background.y, background.z, 1.0);
 
+  loadVerticesToBuffer();
   renderLines();
   renderPointsIfNeeded();
 }
@@ -41,43 +42,6 @@ void ObjectGLWidget::loadObject() {
 
   generateObjectBuffers();
   loadPolygonsToBuffers();
-}
-
-void ObjectGLWidget::redraw() {
-  static vector_t moving_deltas = {0.001, 0.001, 0.001};
-  static vector_t to_move = {0.01, 0.01, 0.01};
-
-  if (fabs(this->position.x) > 0.4) moving_deltas.x *= -1;
-  if (fabs(this->position.y) > 0.3) moving_deltas.y *= -1;
-  if (fabs(this->position.z) > 0.2) moving_deltas.z *= -1;
-
-  to_move.x += moving_deltas.x;
-  to_move.y += moving_deltas.y;
-  to_move.z += moving_deltas.z;
-
-  ObjectGLWidget::moveObjectX(to_move.x);
-  ObjectGLWidget::moveObjectY(to_move.y);
-  ObjectGLWidget::moveObjectZ(to_move.z);
-
-  vector_t degree = {0.1, 0.1, 0.1};
-  static vector_t degree_to_set = {0, 0, 0};
-  degree_to_set.x += degree.x;
-  degree_to_set.y += degree.y;
-  degree_to_set.z += degree.z;
-
-  ObjectGLWidget::rotateObjectX(degree_to_set.x);
-  ObjectGLWidget::rotateObjectY(degree_to_set.y);
-  ObjectGLWidget::rotateObjectZ(degree_to_set.z);
-
-  static double scale = 2;
-  static double scaling_step = -1;
-
-  if (scale > 150 || scale < 0) scaling_step *= -1;
-
-  scale += scaling_step;
-  ObjectGLWidget::scaleObject(scale);
-
-  ObjectGLWidget::setLineColor(255, 0, 255);
 }
 
 void ObjectGLWidget::generateObjectBuffers() {
@@ -210,8 +174,8 @@ void ObjectGLWidget::setLineWidth(double width) {
   update();
 }
 
-void ObjectGLWidget::setLineColor(int r, int g, int b) {
-  this->lines_color = {r / 255.0, g / 255.0, b / 255.0};
+void ObjectGLWidget::setLineColor(int red, int green, int blue) {
+  this->lines_color = {red / 255.0, green / 255.0, blue / 255.0};
   update();
 }
 
@@ -220,8 +184,8 @@ void ObjectGLWidget::setLineStyle(LinesStyle style) {
   update();
 }
 
-void ObjectGLWidget::setPointsColor(int r, int g, int b) {
-  this->points_color = {r / 255.0, g / 255.0, b / 255.0};
+void ObjectGLWidget::setPointsColor(int red, int green, int blue) {
+  this->points_color = {red / 255.0, green / 255.0, blue / 255.0};
   update();
 }
 
@@ -232,6 +196,11 @@ void ObjectGLWidget::setPointsSize(double size) {
 
 void ObjectGLWidget::setPointsStyle(PointsStyle style) {
   this->points_style = style;
+  update();
+}
+
+void ObjectGLWidget::setBackground(int red, int green, int blue) {
+  this->background = {red / 255.0, green / 255.0, blue / 255.0};
   update();
 }
 
