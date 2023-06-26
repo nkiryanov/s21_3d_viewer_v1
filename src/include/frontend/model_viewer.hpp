@@ -4,8 +4,6 @@
 #include <QMainWindow>
 #include <QTimer>
 
-#include "frontend/object_gl_widget.hpp"
-
 QT_BEGIN_NAMESPACE namespace Ui { class ModelViewer; }
 QT_END_NAMESPACE
 
@@ -48,7 +46,6 @@ class ModelViewer : public QMainWindow {
 
  private:
   Ui::ModelViewer *ui;
-  ObjectGLWidget *object_widget;
 };
 
 }  // namespace ViewerFrontend
