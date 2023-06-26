@@ -71,7 +71,7 @@ void clean_object_data(object_t *object_data) {
 static int count_vertices_and_polygonc(FILE *file, object_t *Data,
                                        int *len_max_str) {
   int err = 0;
-  char ch = '\0';
+  int ch = '\0';
   int len_tmp_str = 0;
 
   // парсим посимвольно и считаем строки V и P

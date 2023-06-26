@@ -236,7 +236,7 @@
      </layout>
     </item>
     <item>
-     <widget class="ViewerFrontend::ObjectGLWidget" name="ObjectGLWidget">
+     <widget class="ViewerFrontend::MeshGLWidget" name="MeshGLWidget">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -1317,9 +1317,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>ViewerFrontend::ObjectGLWidget</class>
+   <class>ViewerFrontend::MeshGLWidget</class>
    <extends>QOpenGLWidget</extends>
-   <header>frontend/object_gl_widget.hpp</header>
+   <header>frontend/mesh_gl_widget.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>
