@@ -17,5 +17,5 @@ target_include_directories(
 
 target_link_libraries(
   "3D_Viewer_frontend"
-  PUBLIC "3D_Viewer_backend" Qt6::Widgets Qt6::OpenGLWidgets
+  PUBLIC "3D_Viewer_backend" "gif-h" Qt6::Widgets Qt6::OpenGLWidgets
 )

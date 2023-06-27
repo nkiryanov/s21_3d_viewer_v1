@@ -15,7 +15,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "frontend/gif.h"
+#include "gif.h"
 #include "ui/ui_model_viewer.h"
 
 extern "C" {
@@ -345,52 +345,34 @@ void ModelViewer::on_pushButton_screencast_clicked() {
                                                       tr("GIF files (*.gif)"));
 
   if (!gif_fileName.isEmpty()) {
-    int gif_width = ui->MeshGLWidget->width();
-    int gif_height = ui->MeshGLWidget->height();
-
     // Запуск процесса записи GIF
-    startGifRecording(gif_fileName, gif_width, gif_height);
+    startGifRecording(gif_fileName);
   }
 }
 
-void ModelViewer::startGifRecording(const QString &gif_fileName, int gif_width,
-                                    int gif_height) {
+void ModelViewer::startGifRecording(const QString &gif_fileName) {
   QVector<QImage> frames;
 
-  int frameCount = 0;
-  const int targetFrameCount =
-      10 * 5;  // 10 кадров в секунду в течение 5 секунд
+  const int targetFrameCount = 10 * 5;  // 10 frames per second during 5 sec
+  const int gif_width = 640;
+  const int gif_height = 480;
 
   QTimer *timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this,
-          [this, frames, frameCount, gif_fileName, gif_width, gif_height,
-           timer]() mutable {
-            // Снимок рабочей области и добавление его в вектор
-            frames.push_back(ui->MeshGLWidget->grabFramebuffer());
-            if (!frames.isEmpty()) {
-              const QImage &firstFrame = frames.first();
-              QString fileName =
-                  QDir::homePath() +
-                  "/Desktop/first_frame.png";  // Полный путь к файлу на рабочем
-                                               // столе
-              firstFrame.save(fileName);
-            }
-            ++frameCount;
+          [this, frames, gif_fileName, timer]() mutable {
+            if (frames.size() < targetFrameCount) {
+              QImage frame = ui->MeshGLWidget->grabFramebuffer();
+              frame = frame.scaled(gif_width, gif_height, Qt::KeepAspectRatio);
+              frames.push_back(frame);
 
-            // Проверка условия завершения записи
-            if (frameCount >= targetFrameCount) {
-              // Остановка таймера
+            } else {
               timer->stop();
-
-              // Включение кнопки
               ui->pushButton_screencast->setDisabled(false);
-
-              // Возвращение текста кнопки в исходное состояние
               ui->pushButton_screencast->setText("Screencast");
 
-              // Сохранение GIF-анимации
-              saveGifAnimation(gif_fileName, gif_width, gif_height, frames);
-              // Очистка вектора с кадрами
+              saveGifAnimation(gif_fileName, frames);
+
+              // Clear framebuffers
               frames.clear();
             }
           });
@@ -399,33 +381,32 @@ void ModelViewer::startGifRecording(const QString &gif_fileName, int gif_width,
   timer->start(100);
 }
 
-void ModelViewer::saveGifAnimation(const QString &gif_fileName, int gif_width,
-                                   int gif_height,
+void ModelViewer::saveGifAnimation(const QString &gif_fileName,
                                    const QVector<QImage> &frames) {
   GifWriter gifWriter;
-  GifBegin(&gifWriter, gif_fileName.toStdString().c_str(), gif_width,
-           gif_height, 10);
-  gif_width = 640;
-  gif_height = 480;
-  for (const QImage &frame : frames) {
-    // Изменение размера фрейма до 640x480
-    QImage resizedFrame =
-        frame.scaled(gif_width, gif_height, Qt::KeepAspectRatio);
 
-    std::vector<uint8_t> rgbaPixels(gif_width * gif_height * 4, 0);
+  int output_width = frames.first().width();
+  int output_height = frames.first().height();
+
+  GifBegin(&gifWriter, gif_fileName.toStdString().c_str(), output_width,
+           output_height, 10);
+
+  for (const QImage &frame : frames) {
+    std::vector<uint8_t> rgbaPixels(output_width * output_height * 4, 0);
 
     // Конвертация RGBA пикселей в вектор uint8_t
-    for (int y = 0; y < gif_height; ++y) {
-      for (int x = 0; x < gif_width; ++x) {
-        QRgb pixel = resizedFrame.pixel(x, y);
-        rgbaPixels[(y * gif_width + x) * 4 + 0] = qRed(pixel);
-        rgbaPixels[(y * gif_width + x) * 4 + 1] = qGreen(pixel);
-        rgbaPixels[(y * gif_width + x) * 4 + 2] = qBlue(pixel);
-        rgbaPixels[(y * gif_width + x) * 4 + 3] = 0;  // ignoring by gif.h :D
+    for (int y = 0; y != output_height; ++y) {
+      for (int x = 0; x != output_width; ++x) {
+        QRgb pixel = frame.pixel(x, y);
+        rgbaPixels[(y * output_width + x) * 4 + 0] = qRed(pixel);
+        rgbaPixels[(y * output_width + x) * 4 + 1] = qGreen(pixel);
+        rgbaPixels[(y * output_width + x) * 4 + 2] = qBlue(pixel);
+        rgbaPixels[(y * output_width + x) * 4 + 3] = 0;  // ignoring by gif.h :D
       }
     }
 
-    GifWriteFrame(&gifWriter, rgbaPixels.data(), gif_width, gif_height, 10);
+    GifWriteFrame(&gifWriter, rgbaPixels.data(), output_width, output_height,
+                  10);
   }
 
   GifEnd(&gifWriter);

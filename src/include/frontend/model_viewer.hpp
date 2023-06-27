@@ -49,10 +49,9 @@ class ModelViewer : public QMainWindow {
   void loadSettings();
 
   void on_pushButton_screencast_clicked();
-  void startGifRecording(const QString& gif_fileName, int gif_width,
-                         int gif_height);
-  void saveGifAnimation(const QString& gif_fileName, int gif_width,
-                        int gif_height, const QVector<QImage>& frames);
+  void startGifRecording(const QString& gif_fileName);
+  void saveGifAnimation(const QString& gif_fileName,
+                        const QVector<QImage>& frames);
 
   void onTimeout();
 
