@@ -8,7 +8,6 @@ int main(int argc, char *argv[]) {
 
   QSurfaceFormat format;
   format.setVersion(2, 1);
-  // format.setProfile(QSurfaceFormat::CoreProfile);
   QSurfaceFormat::setDefaultFormat(format);
 
   ViewerFrontend::ModelViewer window;

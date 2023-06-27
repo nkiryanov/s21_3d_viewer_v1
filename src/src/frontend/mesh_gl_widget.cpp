@@ -147,6 +147,10 @@ void MeshGLWidget::drawLines() {
     glLineStipple(1, 0x000f);
   }
 
+  if (mesh_state.lines_style == LinesStyle::kSolid) {
+    glDisable(GL_LINE_STIPPLE);
+  }
+
   glLineWidth(mesh_state.lines_width);
 
   program.setUniformValue("FragColor", mesh_state.lines_color);
@@ -245,6 +249,11 @@ void MeshGLWidget::setPointsStyle(PointsStyle style) {
 
 void MeshGLWidget::setBackground(QColor& color) {
   mesh_state.background = color;
+  update();
+}
+
+void MeshGLWidget::setCentralPerspective(bool is_central_perspective) {
+  mesh_state.is_perspective = is_central_perspective;
   update();
 }
 

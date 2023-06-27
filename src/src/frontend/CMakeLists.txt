@@ -1,4 +1,4 @@
-file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/include/frontend/*.hpp")
+file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/include/frontend/*.hpp" "${PROJECT_SOURCE_DIR}/include/frontend/*.h")
 
 qt_add_library(
   "3D_Viewer_frontend" STATIC
