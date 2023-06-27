@@ -13,8 +13,6 @@
 #include <QVector3D>
 #include <vector>
 
-#include "frontend/temp_cube_object.hpp"
-
 extern "C" {
 #include "backend/object_t.h"
 }
@@ -33,6 +31,9 @@ enum class LinesStyle {
 };
 
 struct MeshState {
+  bool is_loaded = false;
+  bool is_perspective = true;
+
   GLfloat point_size = 10.0;
   PointsStyle points_style = PointsStyle::kNone;
   QColor points_color = QColor("white");
@@ -45,20 +46,11 @@ struct MeshState {
   QVector3D degree;
   QVector3D position;
   GLfloat scaling = 1.0;
-
-  bool is_perspective = true;
-};
-
-struct ElementBuffer {
-  GLuint buffer_number;
-  GLuint buffer_size;
 };
 
 class MeshGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
  public:
-  MeshGLWidget(QWidget *parent = nullptr) : QOpenGLWidget(parent) {
-    mesh = &cube_object;
-  }
+  MeshGLWidget(QWidget *parent = nullptr) : QOpenGLWidget(parent) {}
 
  protected:
   void initializeGL() override;
@@ -66,22 +58,27 @@ class MeshGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
 
  private:
   QOpenGLShaderProgram program;
-  QOpenGLBuffer vertex_buffer;
+  QOpenGLBuffer vertex_buffer = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+  QOpenGLBuffer element_buffer = QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
   QOpenGLVertexArrayObject vertex_array_object;
 
   QMatrix4x4 mvp_matrix;
 
-  // Number of indexes in polygons in one mesh may vary.
-  // We create buffer for all the polygons and render them without
-  // QT wrappers cause it's little bit more flexible
-  std::vector<ElementBuffer> element_buffers;
+  // Structures to access elements (polygons) buffered in GPU (offset and count
+  // of polygons).
+  // The data stored in separate structures cause it's required by
+  // OpenGL drawing functions
+  std::vector<GLsizei> element_indices_counts;
+  std::vector<GLvoid *> element_offsets;
 
-  object_t *mesh = nullptr;
+  object_t mesh;
   MeshState mesh_state;
 
   void initShaders();
   void initVertexBuffer();
-  void initElementBuffers();
+  void destroyVertexBuffer();
+  void initElementBuffer();
+  void destroyElementBuffer();
 
   void CalculateMVPMatrix();
 
@@ -90,6 +87,7 @@ class MeshGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   void drawLines();
 
  public slots:
+  int loadObject(const QString &filename);
   void moveObjectX(float x);
   void moveObjectY(float y);
   void moveObjectZ(float z);

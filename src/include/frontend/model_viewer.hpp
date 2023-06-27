@@ -62,7 +62,7 @@ class ModelViewer : public QMainWindow {
 
   void on_pushButton_screenshot_clicked();
 
-  private:
+ private:
   Ui::ModelViewer* ui;
 };
 
