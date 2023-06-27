@@ -8,7 +8,7 @@ vector_t vertices[2] = {{0.0, 0.0, 0.0}};
 object_t object;
 
 static void add_value_to_object_coordinates(double value, object_t *object) {
-  for (uint32_t i = 0; i != object->vertices_amount; ++i) {
+  for (uint32_t i = 0; i != object->count_vertices; ++i) {
     object->vertices[i].x += value;
     object->vertices[i].y += value;
     object->vertices[i].z += value;
@@ -25,10 +25,10 @@ void setup(void) {
   vertices[1].z = -200.0;
 
   object.vertices = (vector_t *)vertices;
-  object.vertices_amount = 2;
+  object.count_vertices = 2;
 
   object.polygons = NULL;
-  object.polygons_amount = 0;
+  object.count_polygons = 0;
 }
 
 START_TEST(test_move_x_actually_move_vertices_by_x) {

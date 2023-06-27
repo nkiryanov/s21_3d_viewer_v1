@@ -1,5 +1,6 @@
-#include "backend/parser.h"
+#include "backend/loader.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,9 +8,9 @@
 
 #include "backend/object_t.h"
 
-static int count_vertices_and_polygonc(FILE *file, object_t *Data,
+static int count_vertices_and_polygons(FILE *file, object_t *Data,
                                        int *len_max_str);
-static int calloc_vertices_and_polygonc(object_t *object_data);
+static int calloc_vertices_and_polygons(object_t *object_data);
 static int set_struct(FILE *file, object_t *object_data, int len_max_str);
 static int is_empty_str(char *str_f);
 static int is_valid_sting(char *str_f);
@@ -17,8 +18,16 @@ static int is_valid_face_sting(char *str_f, object_t *object_data, int *rowP,
                                int *err);
 static void set_vertices(char *str_f, object_t *object_data, int *rowV);
 static void set_polygons(char *str_f, object_t *object_data, int *rowP);
+static void set_initial_values_to_null(object_t *object);
 
-int parser(char *file_model, object_t *object_data) {
+void set_initial_values_to_null(object_t *object) {
+  object->vertices = NULL;
+  object->count_vertices = 0;
+  object->polygons = NULL;
+  object->count_polygons = 0;
+}
+
+int load_object(char *file_model, object_t *object_data) {
   int err = 0;
 
   // откроем файл
@@ -30,17 +39,17 @@ int parser(char *file_model, object_t *object_data) {
 
   } else {
     // обнулим структуру
-    clean_object_data(object_data);
+    set_initial_values_to_null(object_data);
 
     // посчитаем кол-во строк начинающихся с 'v' и 'f'
     int len_max_str = 0;
-    err = count_vertices_and_polygonc(file, object_data, &len_max_str);
+    err = count_vertices_and_polygons(file, object_data, &len_max_str);
     len_max_str++;
     rewind(file);
 
     // выделим память для vertex и polygon, тк мы узнали кол-во строк
     if (err == 0) {
-      err = calloc_vertices_and_polygonc(object_data);
+      err = calloc_vertices_and_polygons(object_data);
     }
 
     // заполняем структуру vertex и polygon
@@ -49,10 +58,7 @@ int parser(char *file_model, object_t *object_data) {
     }
 
     // если у нас выделилась память, но дальше была ошибка, освободим ее
-    if (err != 0) {
-      free_vertices_and_polygonc(object_data);
-      clean_object_data(object_data);
-    }
+    if (err != 0) free_object(object_data);
 
     fclose(file);
   }
@@ -60,15 +66,7 @@ int parser(char *file_model, object_t *object_data) {
   return err;
 }
 
-void clean_object_data(object_t *object_data) {
-  // зануляем структуру
-  object_data->vertices = NULL;
-  object_data->polygons = NULL;
-  object_data->vertices_amount = 0;
-  object_data->polygons_amount = 0;
-}
-
-static int count_vertices_and_polygonc(FILE *file, object_t *Data,
+static int count_vertices_and_polygons(FILE *file, object_t *data,
                                        int *len_max_str) {
   int err = 0;
   int ch = '\0';
@@ -95,59 +93,63 @@ static int count_vertices_and_polygonc(FILE *file, object_t *Data,
     // если строка начинается с 'v '
     if (ch == 'v' && len_tmp_str == 1) {
       if ((ch = fgetc(file)) && ch == ' ') {
-        Data->vertices_amount++;
+        data->count_vertices++;
       }
       len_tmp_str++;
 
     } else if (ch == 'f' && len_tmp_str == 1) {
       if ((ch = fgetc(file)) && ch == ' ') {
-        Data->polygons_amount++;
+        data->count_polygons++;
       }
       len_tmp_str++;
     }
   }
-  // printf("len = %d\n",*len_max_str);
-  // printf("%d %d\n",Data->vertices_amount, Data->polygons_amount);
 
   // если нет ни одной строки с v или f
-  if (Data->vertices_amount == 0 || Data->polygons_amount == 0) {
+  if (data->count_vertices == 0 || data->count_polygons == 0) {
     err = 1;
   }
 
   return err;
 }
 
-static int calloc_vertices_and_polygonc(object_t *object_data) {
+static int calloc_vertices_and_polygons(object_t *object_data) {
   // выделим память на vertex и polygon
-  int err = 0;
+  int is_error = 0;
+
+  object_data->vertices = NULL;
+  object_data->polygons = NULL;
 
   object_data->vertices =
-      (vector_t *)calloc(object_data->vertices_amount, sizeof(vector_t));
+      (vector_t *)calloc(object_data->count_vertices, sizeof(vector_t));
   object_data->polygons =
-      (polygon_t *)calloc(object_data->polygons_amount, sizeof(polygon_t));
+      (polygon_t *)calloc(object_data->count_polygons, sizeof(polygon_t));
 
   if (!object_data->vertices || !object_data->polygons) {
-    err = 1;
+    is_error = 1;
+
+    free(object_data->vertices);
+    free(object_data->polygons);
   }
 
-  return err;
+  return is_error;
 }
 
-void free_vertices_and_polygonc(object_t *object_data) {
+void free_object(object_t *object_data) {
   // освободим память на vertex и polygon
 
-  if (object_data->vertices) {
-    free(object_data->vertices);
-  }
+  if (object_data->vertices) free(object_data->vertices);
 
   if (object_data->polygons) {
-    for (uint32_t i = 0; i < object_data->polygons_amount; i++) {
-      if (object_data->polygons[i].vertex_indexes) {
-        free(object_data->polygons[i].vertex_indexes);
+    for (uint32_t i = 0; i != object_data->count_polygons; ++i) {
+      if (object_data->polygons[i].vertex_indices) {
+        free(object_data->polygons[i].vertex_indices);
       }
     }
     free(object_data->polygons);
   }
+
+  set_initial_values_to_null(object_data);
 }
 
 static int set_struct(FILE *file, object_t *object_data, int len_max_str) {
@@ -180,10 +182,10 @@ static int set_struct(FILE *file, object_t *object_data, int len_max_str) {
       }
     }
   }
-  object_data->vertices_amount = rowV;
-  object_data->polygons_amount = rowP;
+  object_data->count_vertices = rowV;
+  object_data->count_polygons = rowP;
 
-  if (object_data->vertices_amount == 0 || object_data->polygons_amount == 0) {
+  if (object_data->count_vertices == 0 || object_data->count_polygons == 0) {
     err = 1;
   }
 
@@ -244,7 +246,7 @@ static int is_valid_face_sting(char *str_f, object_t *object_data, int *rowP,
   // сколько чисел в строке f 1 2 3 4 5 6 и запишем в amount
   while ((ch = str_f[i]) && (ch != '\0' && ch != '\n')) {
     if ((strchr("1234567890", ch)) && (strchr(" ", str_f[i - 1]))) {
-      object_data->polygons[*rowP].amount++;
+      object_data->polygons[*rowP].count_indices++;
 
       // printf("ch = %c ", ch);
       // printf("*rowP = %d ", *rowP);
@@ -255,20 +257,16 @@ static int is_valid_face_sting(char *str_f, object_t *object_data, int *rowP,
   }
 
   // выделим память под числа, зная их кол-во, если их больше 3х
-  // printf("num before = %d\n", object_data->polygons[*rowP].amount);
-  if (object_data->polygons[*rowP].amount < 3) {
+  if (object_data->polygons[*rowP].count_indices < 3) {
     res = 0;
-    object_data->polygons[*rowP].amount = 0;
+    object_data->polygons[*rowP].count_indices = 0;
   } else {
-    object_data->polygons[*rowP].vertex_indexes = (uint32_t *)calloc(
-        object_data->polygons[*rowP].amount, sizeof(uint32_t));
-    if (!object_data->polygons[*rowP].vertex_indexes) {
+    object_data->polygons[*rowP].vertex_indices = (uint32_t *)calloc(
+        object_data->polygons[*rowP].count_indices, sizeof(uint32_t));
+    if (!object_data->polygons[*rowP].vertex_indices) {
       *err = 1;
     }
   }
-  // printf("num after = %d\n", object_data->polygons[*rowP].amount);
-  // printf("valid = %d\n", res);
-  // printf("err = %d\n\n", *err);
   return res;
 }
 
@@ -286,18 +284,12 @@ static void set_vertices(char *str_f, object_t *object_data, int *rowV) {
   success = sscanf(str_f, "v %lf%c%lf%c%lf", &x, &first_separator, &y,
                    &second_separator, &z);
 
-  // printf("success = %d\n", success);
-  // printf("x = %lf   y = %lf   z = %lf\n", x, y, z);
-  // printf("first_separator = '%c'  first_separator = '%c'\n", first_separator,
-  // second_separator);
-
   if (success == 5 &&
       (first_separator == ch_space && second_separator == ch_space)) {
     object_data->vertices[*rowV].x = x;
     object_data->vertices[*rowV].y = y;
     object_data->vertices[*rowV].z = z;
-    // printf("%lf %lf %lf\n",  object_data->vertices[*rowV][0],
-    // object_data->vertices[*rowV][1],  object_data->vertices[*rowV][2]);
+
     (*rowV)++;
   }
 }
@@ -311,13 +303,11 @@ static void set_polygons(char *str_f, object_t *object_data, int *rowP) {
   int j = 0;  // столбец в polygons[*rowP]
   char ch;
 
-  if (object_data->polygons[*rowP].amount >= 3) {
+  if (object_data->polygons[*rowP].count_indices >= 3) {
     // сколько чисел в строке f 1 2 3 4 5 6 и запишем в vertices_amount_in_P
     while ((ch = str_f[i]) && (ch != '\0' && ch != '\n')) {
       if ((strchr("1234567890", ch)) && (strchr(" ", str_f[i - 1]))) {
-        object_data->polygons[*rowP].vertex_indexes[j] = atoi(str_f + i);
-        // printf("i = %d: %d \n",  i,
-        // object_data->polygons[*rowP].vertex_indexes[j]);
+        object_data->polygons[*rowP].vertex_indices[j] = atoi(str_f + i);
         j++;
         success++;
       }
@@ -325,30 +315,27 @@ static void set_polygons(char *str_f, object_t *object_data, int *rowP) {
     }
     // printf("\n");
     // если успешно записали
-    if (success == object_data->polygons[*rowP].amount) {
+    if (success == object_data->polygons[*rowP].count_indices) {
       (*rowP)++;
     } else {
-      object_data->polygons[*rowP].amount = 0;
+      object_data->polygons[*rowP].count_indices = 0;
     }
   }
 }
 
 void printf_object_data(object_t *object_data) {
-  printf("vertices = %d   polygons = %d\n", object_data->vertices_amount,
-         object_data->polygons_amount);
+  printf("vertices = %d   polygons = %d\n", object_data->count_vertices,
+         object_data->count_polygons);
 
   // печать структуры
-  for (uint32_t i = 0; i < object_data->vertices_amount; i++) {
+  for (uint32_t i = 0; i != object_data->count_vertices; ++i) {
     printf("%lf %lf %lf\n", object_data->vertices[i].x,
            object_data->vertices[i].y, object_data->vertices[i].z);
-    // printf("%d", i);
   }
 
-  for (uint32_t i = 0; i < object_data->polygons_amount; i++) {
-    // printf("object_data->polygons[i].amount = %d\n",
-    // object_data->polygons[i].amount);
-    for (uint32_t j = 0; j < object_data->polygons[i].amount; j++) {
-      printf("%d  ", object_data->polygons[i].vertex_indexes[j]);
+  for (uint32_t i = 0; i != object_data->count_polygons; ++i) {
+    for (uint32_t j = 0; j != object_data->polygons[i].count_indices; ++j) {
+      printf("%d  ", object_data->polygons[i].vertex_indices[j]);
     }
     printf("\n");
   }

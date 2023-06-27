@@ -79,11 +79,17 @@ ModelViewer::~ModelViewer() {
 // top menu bar start
 
 void ModelViewer::on_actionOpen_triggered() {
-  QString fileName = QFileDialog::getOpenFileName(this, "Choose .obj...", ".",
+  QString filename = QFileDialog::getOpenFileName(this, "Choose .obj...", ".",
                                                   "OBJ File (*.obj)");
-  QFileInfo fileInfo(fileName);
-  QString baseName = fileInfo.fileName();
-  ui->file_name_label->setText(baseName);
+
+  bool is_loaded = ui->MeshGLWidget->loadObject(filename);
+  if (is_loaded) {
+    QFileInfo fileInfo(filename);
+    QString baseName = fileInfo.fileName();
+    ui->file_name_label->setText(baseName);
+
+    on_pushButton_build_clicked();
+  }
 }
 
 void ModelViewer::on_actionSave_picture_triggered() {
