@@ -1,7 +1,9 @@
 #include "frontend/mesh_gl_widget.hpp"
 
 extern "C" {
+#include "backend/loader.h"
 #include "backend/polygon_t.h"
+#include "backend/transformations.h"
 #include "backend/vector_t.h"
 }
 
@@ -15,14 +17,14 @@ void MeshGLWidget::initializeGL() {
   initializeOpenGLFunctions();
 
   initShaders();
-  initVertexBuffer();
-  initElementBuffers();
-
   drawBackground();
 }
 
 void MeshGLWidget::paintGL() {
   drawBackground();
+
+  // Edge case. Do not draw the object if it not loaded
+  if (mesh_state.is_loaded == false) return;
 
   CalculateMVPMatrix();
 
@@ -59,8 +61,7 @@ void MeshGLWidget::initVertexBuffer() {
   vertex_buffer.create();
   vertex_buffer.bind();
   vertex_buffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-  vertex_buffer.allocate(mesh->vertices,
-                         sizeof(vector_t) * mesh->vertices_amount);
+  vertex_buffer.allocate(mesh.vertices, sizeof(vector_t) * mesh.count_vertices);
   vertex_buffer.release();
 
   vertex_array_object.create();
@@ -73,6 +74,8 @@ void MeshGLWidget::initVertexBuffer() {
 
   vertex_array_object.release();
 }
+
+void MeshGLWidget::destroyVertexBuffer() { vertex_buffer.destroy(); }
 
 void MeshGLWidget::initElementBuffers() {
   // Aggregate same count indices polygons in the same storage and
@@ -88,17 +91,24 @@ void MeshGLWidget::initElementBuffers() {
 
   std::unordered_map<uint32_t, DataToUpload> data_per_buffer;
 
-  for (uint32_t i = 0; i != mesh->polygons_amount; ++i) {
-    polygon_t polygon = mesh->polygons[i];
+  for (uint32_t i = 0; i != mesh.count_polygons; ++i) {
+    polygon_t polygon = mesh.polygons[i];
 
-    auto& data = data_per_buffer[polygon.amount];
+    auto& data = data_per_buffer[polygon.count_indices];
 
     // Generate EBO if buffer empty
     if (data.vertex_indices.size() == 0) glGenBuffers(1, &data.buffer_number);
 
     // Combine polygons with same indexes count to same buffer_data
-    for (uint32_t i = 0; i != polygon.amount; ++i) {
-      data.vertex_indices.push_back((GLuint)polygon.vertex_indexes[i]);
+    for (uint32_t i = 0; i != polygon.count_indices; ++i) {
+      GLuint index = (GLuint)polygon.vertex_indices[i];
+
+      if (index < 0 || index >= mesh.count_vertices) {
+        qDebug() << "Non consistent vertex found: " << index;
+        continue;
+      }
+
+      data.vertex_indices.push_back((GLuint)polygon.vertex_indices[i]);
     }
   }
 
@@ -106,16 +116,25 @@ void MeshGLWidget::initElementBuffers() {
     ElementBuffer element_buffer;
 
     element_buffer.buffer_number = data.buffer_number;
-    element_buffer.buffer_size = data.vertex_indices.size() * sizeof(GLuint);
+    element_buffer.count_primitives = data.vertex_indices.size();
+    GLuint buffer_size = data.vertex_indices.size() * sizeof(GLuint);
 
     element_buffers.push_back(element_buffer);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer.buffer_number);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, element_buffer.buffer_size,
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer_size,
                  data.vertex_indices.data(), GL_STATIC_DRAW);
   }
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void MeshGLWidget::destroyElementBuffers() {
+  for (auto& element_buffer : element_buffers) {
+    glGenBuffers(1, &(element_buffer.buffer_number));
+  }
+
+  element_buffers.clear();
 }
 
 void MeshGLWidget::drawBackground() {
@@ -138,7 +157,7 @@ void MeshGLWidget::drawPointsIfNeeded() {
   }
 
   program.setUniformValue("FragColor", mesh_state.points_color);
-  glDrawArrays(GL_POINTS, 0, mesh->vertices_amount);
+  glDrawArrays(GL_POINTS, 0, mesh.count_vertices);
 }
 
 void MeshGLWidget::drawLines() {
@@ -157,8 +176,8 @@ void MeshGLWidget::drawLines() {
 
   for (const auto& element_buffer : element_buffers) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer.buffer_number);
-    glDrawElements(GL_LINE_LOOP, element_buffer.buffer_size, GL_UNSIGNED_INT,
-                   nullptr);
+    glDrawElements(GL_LINE_LOOP, element_buffer.count_primitives,
+                   GL_UNSIGNED_INT, nullptr);
   }
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -181,6 +200,29 @@ void MeshGLWidget::CalculateMVPMatrix() {
   mvp_matrix.rotate(mesh_state.degree.x(), 1, 0, 0);
   mvp_matrix.rotate(mesh_state.degree.y(), 0, 1, 0);
   mvp_matrix.rotate(mesh_state.degree.z(), 0, 0, 1);
+}
+
+int MeshGLWidget::loadObject(const QString& filename) {
+  if (mesh_state.is_loaded) {
+    free_object(&mesh);
+    destroyVertexBuffer();
+    destroyElementBuffers();
+    mesh_state.is_loaded = false;
+  }
+
+  QByteArray filename_bytes = filename.toLocal8Bit();
+  int load_status = load_object(filename_bytes.data(), &mesh);
+
+  bool is_error_happened = (load_status == 0) ? false : true;
+
+  if (!is_error_happened) {
+    object_normalize(0.5, &mesh);
+    initVertexBuffer();
+    initElementBuffers();
+    mesh_state.is_loaded = true;
+  }
+
+  return is_error_happened;
 }
 
 void MeshGLWidget::moveObjectX(float x) {

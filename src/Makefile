@@ -5,8 +5,8 @@ INSTALL_DIR := ../_install_dir
 COVERAGE_REPORT_DIR := $(BUILD_DIR)/coverage
 COVERAGE_REPORT := $(BUILD_DIR)/coverage.info
 
-SRC := $(shell find $(CMAKE_ROOT) -name "*.c" -o -name "*.cpp")
-HEADERS := $(shell find $(CMAKE_ROOT) -name "*.h" -o -name "*.hpp")
+SRC := $(shell find $(CMAKE_ROOT) \( -name "*.h" -o -name "*.hpp" \) -not -path "$(CMAKE_ROOT)/extern/*")
+HEADERS := $(shell find $(CMAKE_ROOT) \( -name "*.h" -o -name "*.hpp" \) -not -path "$(CMAKE_ROOT)/extern/*")
 
 DCMAKE_BUILD_TYPE := Debug
 
@@ -58,6 +58,7 @@ dist:
 
 echo:
 	@echo "HEADERS = $(HEADERS)"
+	@echo "SRC = $(SRC)"
 
 clean: uninstall
 	rm -rf $(BUILD_DIR)
