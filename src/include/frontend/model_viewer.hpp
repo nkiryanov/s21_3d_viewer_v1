@@ -58,7 +58,11 @@ class ModelViewer : public QMainWindow {
   void on_radioButton_central_projection_clicked();
   void on_radioButton_parallel_projection_clicked();
 
- private:
+  void on_pushButton_openFile_clicked();
+
+  void on_pushButton_screenshot_clicked();
+
+  private:
   Ui::ModelViewer* ui;
 };
 

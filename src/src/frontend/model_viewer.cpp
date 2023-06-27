@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QResizeEvent>
 #include <QtGlobal>
+#include <QButtonGroup>
 // 3rd bonus task
 #include <QFileDialog>
 #include <QImage>
@@ -63,6 +64,10 @@ ModelViewer::ModelViewer(QWidget *parent)
   ui->color_bg_widget->setPalette(palette);
   ui->color_bg_widget->setAutoFillBackground(true);
 
+  QButtonGroup* buttonGroup = new QButtonGroup(this);
+  buttonGroup->addButton(ui->radioButton_central_projection);
+  buttonGroup->addButton(ui->radioButton_parallel_projection);
+
   loadSettings();
 }
 
@@ -96,6 +101,28 @@ void ModelViewer::on_actionSave_picture_triggered() {
 }
 
 // top menu bar end
+
+void ModelViewer::on_pushButton_screenshot_clicked() {
+  // Grab a screenshot of the MeshGLWidget
+  QPixmap screenshot = ui->MeshGLWidget->grab();
+
+  // Link to save image
+  QString filePath = QFileDialog::getSaveFileName(
+      this, "Save Image", ".", "BMP Files (*.bmp);;JPEG Files (*.jpg)");
+
+  // Save image
+  if (!filePath.isEmpty()) {
+    screenshot.save(filePath);
+  }
+}
+
+void ModelViewer::on_pushButton_openFile_clicked() {
+  QString fileName = QFileDialog::getOpenFileName(this, "Choose .obj...", ".",
+                                                  "OBJ File (*.obj)");
+  QFileInfo fileInfo(fileName);
+  QString baseName = fileInfo.fileName();
+  ui->file_name_label->setText(baseName);
+}
 
 void ModelViewer::on_pushButton_build_clicked() {
   QLabel *nodesValueLabel = ui->nodes_value_label;
@@ -227,6 +254,14 @@ void ModelViewer::on_edges_dashed_radioButton_clicked() {
   ui->MeshGLWidget->setLineStyle(LinesStyle::kDashed);
 }
 
+void ModelViewer::on_radioButton_central_projection_clicked() {
+  ui->MeshGLWidget->setCentralPerspective(true);
+}
+
+void ModelViewer::on_radioButton_parallel_projection_clicked() {
+  ui->MeshGLWidget->setCentralPerspective(false);
+}
+
 void ModelViewer::saveSettings() {
   QSettings settings("3D_Viewer_Settings", "3d_viewer", this);
 
@@ -272,6 +307,10 @@ void ModelViewer::saveSettings() {
   settings.setValue("nodesRed", nodesRed);
   settings.setValue("nodesGreen", nodesGreen);
   settings.setValue("nodesBlue", nodesBlue);
+
+  int projectionPerspective =
+      ui->radioButton_central_projection->isChecked() ? 0 : 1;
+  settings.setValue("projectionPerspective", projectionPerspective);
 }
 
 void ModelViewer::loadSettings() {
@@ -332,9 +371,20 @@ void ModelViewer::loadSettings() {
   loaded_color = QColor(settings.value("nodesRed", 0).toInt(),
                         settings.value("nodesGreen", 0).toInt(),
                         settings.value("nodesBlue", 0).toInt());
-  palette.setColor(QPalette::Window, QColor(loaded_color));
+  ui->MeshGLWidget->setPointsColor(loaded_color);
+  palette.setColor(QPalette::Window, loaded_color);
   ui->color_nodes_widget->setPalette(palette);
   ui->color_nodes_widget->setAutoFillBackground(true);
+
+  int projectionPerspective =
+      settings.value("projectionPerspective", 0).toInt();
+  if (projectionPerspective == 1) {
+    ui->MeshGLWidget->setCentralPerspective(false);
+    ui->radioButton_parallel_projection->setChecked(projectionPerspective == 1);
+  } else {
+    ui->MeshGLWidget->setCentralPerspective(true);
+    ui->radioButton_central_projection->setChecked(projectionPerspective == 0);
+  }
 }
 
 void ModelViewer::on_pushButton_screencast_clicked() {
@@ -415,14 +465,6 @@ void ModelViewer::saveGifAnimation(const QString &gif_fileName,
 void ModelViewer::onTimeout() {
   ui->pushButton_screencast->setText("Screencast");
   ui->pushButton_screencast->setDisabled(false);
-}
-
-void ModelViewer::on_radioButton_central_projection_clicked() {
-  ui->MeshGLWidget->setCentralPerspective(true);
-}
-
-void ModelViewer::on_radioButton_parallel_projection_clicked() {
-  ui->MeshGLWidget->setCentralPerspective(false);
 }
 
 }  // namespace ViewerFrontend

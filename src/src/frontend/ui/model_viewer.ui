@@ -62,6 +62,19 @@
          <number>15</number>
         </property>
         <item>
+         <widget class="QPushButton" name="pushButton_openFile">
+          <property name="font">
+           <font>
+            <family>Arial</family>
+            <pointsize>14</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Open File...</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="pushButton_build">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -208,8 +221,24 @@
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <property name="spacing">
+         <number>15</number>
+        </property>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="font">
+             <font>
+              <family>Arial</family>
+              <pointsize>14</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Projection:</string>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QRadioButton" name="radioButton_parallel_projection">
             <property name="font">
@@ -219,7 +248,16 @@
              </font>
             </property>
             <property name="text">
-             <string>Параллельная проекция</string>
+             <string>Parallel</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+            <property name="autoExclusive">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -232,7 +270,10 @@
              </font>
             </property>
             <property name="text">
-             <string>Центральная проекция</string>
+             <string>Central</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -331,6 +372,19 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_screenshot">
+          <property name="font">
+           <font>
+            <family>Arial</family>
+            <pointsize>14</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Screenshot</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="pushButton_screencast">
