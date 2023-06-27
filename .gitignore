@@ -56,6 +56,9 @@ dkms.conf
 build*/
 CMakeLists.txt.user
 
+# Progject install dir
+_install_dir/
+
 # macOS specific files
 .DS_Store
 .cache/

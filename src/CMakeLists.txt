@@ -8,10 +8,10 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Qt spefific settings cause the poject use it
+# Qt specific settings because the project uses it
 find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets)
-set(CMAKE_AUTOMOC ON) 
-set(CMAKE_AUTORCC ON) 
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Let's nicely support folders in IDEs
@@ -23,7 +23,7 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 # Set install prefix if this is the main app
 set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/../_install_dir/")
 
-# Set app wide compiller options
+# Set app wide compiler options
 add_compile_options(-Wall -Werror -Wextra)
 
 # Docs only available if this is the main app

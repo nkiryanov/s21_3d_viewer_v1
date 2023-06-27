@@ -104,6 +104,7 @@ class MeshGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   void setPointsSize(float size);
   void setPointsStyle(PointsStyle style);
   void setBackground(QColor &color);
+  void setCentralPerspective(bool is_central_perspective);
 };
 
 }  // namespace ViewerFrontend
