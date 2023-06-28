@@ -13,6 +13,13 @@ extern "C" {
 
 namespace ViewerFrontend {
 
+MeshGLWidget::~MeshGLWidget() {
+  makeCurrent();
+
+  Cleanup();
+  delete program;
+}
+
 void MeshGLWidget::initializeGL() {
   initializeOpenGLFunctions();
 
@@ -28,33 +35,35 @@ void MeshGLWidget::paintGL() {
 
   CalculateMVPMatrix();
 
-  program.bind();
-  program.setUniformValue("mvp_matrix", mvp_matrix);
+  program->bind();
+  program->setUniformValue("mvp_matrix", mvp_matrix);
 
   vertex_array_object.bind();
   drawPointsIfNeeded();
   drawLines();
   vertex_array_object.release();
 
-  program.release();
+  program->release();
 }
 
 void MeshGLWidget::initShaders() {
+  delete program;
+  program = new QOpenGLShaderProgram();
   // Compile vertex shader
-  if (!program.addShaderFromSourceFile(QOpenGLShader::Vertex,
+  if (!program->addShaderFromSourceFile(QOpenGLShader::Vertex,
                                        ":/shaders/vertex.glsl"))
     close();
 
   // Compile fragment shader
-  if (!program.addShaderFromSourceFile(QOpenGLShader::Fragment,
+  if (!program->addShaderFromSourceFile(QOpenGLShader::Fragment,
                                        ":/shaders/fragment.glsl"))
     close();
 
   // Link shader pipeline
-  if (!program.link()) close();
+  if (!program->link()) close();
 
   // Bind shader pipeline for use
-  if (!program.bind()) close();
+  if (!program->bind()) close();
 }
 
 void MeshGLWidget::initVertexBuffer() {
@@ -75,41 +84,46 @@ void MeshGLWidget::initVertexBuffer() {
   vertex_array_object.release();
 }
 
-void MeshGLWidget::destroyVertexBuffer() {
-  vertex_buffer.destroy();
-  vertex_array_object.destroy();
-}
-
 void MeshGLWidget::initElementBuffer() {
-  // Store all the polygons in one buffer element array.
-  // Cause the number of polygons may vary we should draw the polygons with
-  // `glMultiDrawElements` and have to store count indices per polygons and
-  // calculate the offset in the buffer.
+  // Store all the polygons in a single element buffer array.
+  // Since the number of polygons may vary, we draw the polygons using
+  // `GL_LINES`. To achieve this, we explicitly break down the primitives into
+  // lines, specifying the start and end points for each line. This approach
+  // requires more memory but saves CPU cycles.
 
-  std::vector<GLuint> polygon_indices;
-  GLuint buffer_offset = 0;
+  std::vector<GLuint> polygon_indices(0);
 
   for (uint32_t i = 0; i != mesh.count_polygons; ++i) {
     auto& polygon = mesh.polygons[i];
 
-    element_indices_counts.push_back(polygon.count_indices);
-    element_offsets.push_back((void*)(size_t)buffer_offset);
-
-    buffer_offset += polygon.count_indices * sizeof(GLuint);
+    GLuint first_index = 0;
+    GLuint previous_index = 0;
+    GLuint index = 0;
 
     for (uint32_t j = 0; j != polygon.count_indices; ++j) {
-      polygon_indices.push_back((GLuint)polygon.vertex_indices[j]);
+      index = (GLuint)polygon.vertex_indices[j];
+      if (j != 0) {
+        polygon_indices.push_back(previous_index);
+        polygon_indices.push_back(index);
+      } else {
+        first_index = index;
+      }
+      previous_index = index;
+    }
+
+    if (previous_index != first_index) {
+      polygon_indices.push_back(previous_index);
+      polygon_indices.push_back(first_index);
     }
   }
 
+  mesh_edges_count = polygon_indices.size();
   element_buffer.create();
   element_buffer.bind();
   element_buffer.allocate(polygon_indices.data(),
-                          polygon_indices.size() * sizeof(GLuint));
+                          mesh_edges_count * sizeof(GLuint));
   element_buffer.release();
 }
-
-void MeshGLWidget::destroyElementBuffer() { element_buffer.destroy(); }
 
 void MeshGLWidget::drawBackground() {
   glClearColor(mesh_state.background.redF(), mesh_state.background.greenF(),
@@ -130,7 +144,7 @@ void MeshGLWidget::drawPointsIfNeeded() {
     glDisable(GL_POINT_SMOOTH);
   }
 
-  program.setUniformValue("FragColor", mesh_state.points_color);
+  program->setUniformValue("FragColor", mesh_state.points_color);
   glDrawArrays(GL_POINTS, 0, mesh.count_vertices);
 }
 
@@ -146,11 +160,10 @@ void MeshGLWidget::drawLines() {
 
   glLineWidth(mesh_state.lines_width);
 
-  program.setUniformValue("FragColor", mesh_state.lines_color);
+  program->setUniformValue("FragColor", mesh_state.lines_color);
 
   element_buffer.bind();
-  glMultiDrawElements(GL_LINES, element_indices_counts.data(), GL_UNSIGNED_INT,
-                      element_offsets.data(), element_offsets.size());
+  glDrawElements(GL_LINES, mesh_edges_count, GL_UNSIGNED_INT, nullptr);
   element_buffer.release();
 }
 
@@ -173,16 +186,8 @@ void MeshGLWidget::CalculateMVPMatrix() {
   mvp_matrix.rotate(mesh_state.degree.z(), 0, 0, 1);
 }
 
-int MeshGLWidget::loadObject(const QString& filename) {
-  if (mesh_state.is_loaded) {
-    free_object(&mesh);
-    destroyVertexBuffer();
-    destroyElementBuffer();
-    element_indices_counts.clear();
-    element_offsets.clear();
-
-    mesh_state.is_loaded = false;
-  }
+bool MeshGLWidget::loadObject(const QString& filename) {
+  if (mesh_state.is_loaded) Cleanup();
 
   QByteArray filename_bytes = filename.toLocal8Bit();
   int load_status = load_object(filename_bytes.data(), &mesh);
@@ -197,6 +202,21 @@ int MeshGLWidget::loadObject(const QString& filename) {
   }
 
   return is_error_happened;
+}
+
+void MeshGLWidget::Cleanup() {
+  if (mesh_state.is_loaded == false) return;
+  
+  makeCurrent();
+
+  vertex_array_object.destroy();
+  vertex_buffer.destroy();
+  element_buffer.destroy();
+
+  mesh_edges_count = 0;
+  mesh_state.is_loaded = false;
+
+  free_object(&mesh);
 }
 
 void MeshGLWidget::moveObjectX(float x) {

@@ -51,28 +51,23 @@ struct MeshState {
 class MeshGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
  public:
   MeshGLWidget(QWidget *parent = nullptr) : QOpenGLWidget(parent) {}
+  ~MeshGLWidget();
 
  protected:
   void initializeGL() override;
   void paintGL() override;
 
  private:
-  QOpenGLShaderProgram program;
+  QOpenGLShaderProgram *program = nullptr;
   QOpenGLBuffer vertex_buffer = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
   QOpenGLBuffer element_buffer = QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
   QOpenGLVertexArrayObject vertex_array_object;
 
   QMatrix4x4 mvp_matrix;
 
-  // Structures to access elements (polygons) buffered in GPU (offset and count
-  // of polygons).
-  // The data stored in separate structures cause it's required by
-  // OpenGL drawing functions
-  std::vector<GLsizei> element_indices_counts;
-  std::vector<GLvoid *> element_offsets;
-
   object_t mesh;
   MeshState mesh_state;
+  GLuint mesh_edges_count;
 
   void initShaders();
   void initVertexBuffer();
@@ -87,7 +82,8 @@ class MeshGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   void drawLines();
 
  public slots:
-  int loadObject(const QString &filename);
+  bool loadObject(const QString &filename);
+  void Cleanup();
   void moveObjectX(float x);
   void moveObjectY(float y);
   void moveObjectZ(float z);
