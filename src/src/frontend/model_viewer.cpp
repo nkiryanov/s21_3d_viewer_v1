@@ -1,11 +1,11 @@
 #include "frontend/model_viewer.hpp"
 
+#include <QButtonGroup>
 #include <QColorDialog>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QResizeEvent>
 #include <QtGlobal>
-#include <QButtonGroup>
 // 3rd bonus task
 #include <QFileDialog>
 #include <QImage>
@@ -64,7 +64,7 @@ ModelViewer::ModelViewer(QWidget *parent)
   ui->color_bg_widget->setPalette(palette);
   ui->color_bg_widget->setAutoFillBackground(true);
 
-  QButtonGroup* buttonGroup = new QButtonGroup(this);
+  QButtonGroup *buttonGroup = new QButtonGroup(this);
   buttonGroup->addButton(ui->radioButton_central_projection);
   buttonGroup->addButton(ui->radioButton_parallel_projection);
 
@@ -76,81 +76,81 @@ ModelViewer::~ModelViewer() {
   delete ui;
 }
 
-// top menu bar start
-
 void ModelViewer::on_actionOpen_triggered() {
-  QString filename = QFileDialog::getOpenFileName(this, "Choose .obj...", ".",
-                                                  "OBJ File (*.obj)");
+  build_new_object();
+}
+
+void ModelViewer::on_pushButton_openFile_clicked() {
+  build_new_object();
+}
+
+void ModelViewer::on_actionSave_picture_triggered() {
+  make_screenshot();
+}
+
+
+void ModelViewer::on_pushButton_screenshot_clicked() {
+  make_screenshot();
+}
+
+void ModelViewer::make_screenshot() {
+  // Grab a screenshot of the MeshGLWidget
+  QPixmap screenshot = ui->MeshGLWidget->grab();
+
+  // Link to save image
+  QString filePath = QFileDialog::getSaveFileName(
+      this, "Save Image", ".", "BMP Files (*.bmp);;JPEG Files (*.jpg)");
+
+  // Save image
+  if (!filePath.isEmpty()) {
+    screenshot.save(filePath);
+  }
+}
+
+void ModelViewer::build_new_object() {
+  QString filename = QFileDialog::getOpenFileName(this, "Choose .obj...", ".", "OBJ File (*.obj)");
+
+  QLabel* buildStatusPicLabel = ui->build_status_pic_label;
+  QLabel* nodesValueLabel = ui->nodes_value_label;
+  QLabel* edgesValueLabel = ui->edges_value_label;
+  QLabel* buildStatusLabel = ui->build_status_label;
+
+  int width_status_image = ui->build_status_pic_label->width();
+  int height_status_image = ui->build_status_pic_label->height();
+
+  statusBar()->addWidget(buildStatusPicLabel);
+  statusBar()->addPermanentWidget(nodesValueLabel);
+  statusBar()->addPermanentWidget(edgesValueLabel);
 
   bool is_loaded = ui->MeshGLWidget->loadObject(filename);
-  if (is_loaded) {
+  if (!is_loaded) {
     QFileInfo fileInfo(filename);
     QString baseName = fileInfo.fileName();
     ui->file_name_label->setText(baseName);
 
-    on_pushButton_build_clicked();
+    int edges = 6;  // нужны функции для подсчета
+    int nodes = 8;
+    nodesValueLabel->setText("Nodes: " + QString::number(nodes));
+    edgesValueLabel->setText("Edges: " + QString::number(edges));
+
+    ui->build_status_label->setStyleSheet("color: green");
+    buildStatusLabel->setText(QString("Success"));
+
+    QPixmap pixmap(":/images/success.png");
+    pixmap = pixmap.scaled(width_status_image, height_status_image, Qt::KeepAspectRatio);  // Масштабирование изображения
+    buildStatusPicLabel->setPixmap(pixmap);
+  } else {
+    ui->file_name_label->setText("");
+
+    ui->build_status_label->setStyleSheet("color: red");
+    buildStatusLabel->setText(QString("Error"));
+
+    QPixmap pixmap(":/images/error.png");
+    pixmap = pixmap.scaled(width_status_image, height_status_image, Qt::KeepAspectRatio);  // Масштабирование изображения
+    buildStatusPicLabel->setPixmap(pixmap);
   }
 }
 
-void ModelViewer::on_actionSave_picture_triggered() {
-  // Grab a screenshot of the MeshGLWidget
-  QPixmap screenshot = ui->MeshGLWidget->grab();
-
-  // Link to save image
-  QString filePath = QFileDialog::getSaveFileName(
-      this, "Save Image", ".", "BMP Files (*.bmp);;JPEG Files (*.jpg)");
-
-  // Save image
-  if (!filePath.isEmpty()) {
-    screenshot.save(filePath);
-  }
-}
-
-// top menu bar end
-
-void ModelViewer::on_pushButton_screenshot_clicked() {
-  // Grab a screenshot of the MeshGLWidget
-  QPixmap screenshot = ui->MeshGLWidget->grab();
-
-  // Link to save image
-  QString filePath = QFileDialog::getSaveFileName(
-      this, "Save Image", ".", "BMP Files (*.bmp);;JPEG Files (*.jpg)");
-
-  // Save image
-  if (!filePath.isEmpty()) {
-    screenshot.save(filePath);
-  }
-}
-
-void ModelViewer::on_pushButton_openFile_clicked() {
-  QString fileName = QFileDialog::getOpenFileName(this, "Choose .obj...", ".",
-                                                  "OBJ File (*.obj)");
-  QFileInfo fileInfo(fileName);
-  QString baseName = fileInfo.fileName();
-  ui->file_name_label->setText(baseName);
-}
-
-void ModelViewer::on_pushButton_build_clicked() {
-  QLabel *nodesValueLabel = ui->nodes_value_label;
-  QLabel *edgesValueLabel = ui->edges_value_label;
-  QLabel *buildStatusLabel = ui->build_status_label;
-  int edges = 6;  // need funcs for count this
-  int nodes = 8;
-  nodesValueLabel->setText("Nodes: " + QString::number(nodes));
-  edgesValueLabel->setText("Edges: " + QString::number(edges));
-  ui->build_status_label->setStyleSheet(
-      "color: green");                            // if success then else
-  buildStatusLabel->setText(QString("Success"));  // "ERROR red"
-  QLabel *buildStatusPicLabel = ui->build_status_pic_label;
-  QPixmap pixmap(":/images/success.png");
-  int width_status_image = ui->build_status_pic_label->width();
-  int height_status_image = ui->build_status_pic_label->height();
-  statusBar()->addPermanentWidget(nodesValueLabel);
-  statusBar()->addPermanentWidget(edgesValueLabel);
-  statusBar()->addWidget(buildStatusPicLabel);
-  buildStatusPicLabel->setPixmap(pixmap.scaled(
-      width_status_image, height_status_image, Qt::KeepAspectRatio));
-}
 
 void ModelViewer::on_zoom_slider_valueChanged(int value) {
   ui->zoom_value_label->setText(QString::number(value) + "%");

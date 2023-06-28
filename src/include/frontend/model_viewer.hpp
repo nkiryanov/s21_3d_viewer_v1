@@ -17,7 +17,9 @@ class ModelViewer : public QMainWindow {
   ~ModelViewer();
 
  private slots:
-  void on_pushButton_build_clicked();
+
+  void build_new_object();
+  void make_screenshot();
 
   void on_zoom_slider_valueChanged(int value);
 
@@ -62,7 +64,7 @@ class ModelViewer : public QMainWindow {
 
   void on_pushButton_screenshot_clicked();
 
-  private:
+ private:
   Ui::ModelViewer* ui;
 };
 
