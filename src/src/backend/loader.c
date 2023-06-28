@@ -13,8 +13,8 @@ static int count_vertices_and_polygons(FILE *file, object_t *Data,
 static int calloc_vertices_and_polygons(object_t *object_data);
 static int set_struct(FILE *file, object_t *object_data, int len_max_str);
 static int is_empty_str(char *str_f);
-static int is_valid_sting(char *str_f);
-static int is_valid_face_sting(char *str_f, object_t *object_data, int *rowP,
+static int is_valid_string(char *str_f);
+static int is_valid_face_string(char *str_f, object_t *object_data, int *rowP,
                                int *err);
 static void set_vertices(char *str_f, object_t *object_data, int *rowV);
 static void set_polygons(char *str_f, object_t *object_data, int *rowP);
@@ -160,21 +160,19 @@ static int set_struct(FILE *file, object_t *object_data, int len_max_str) {
   // парсим построково
   char str_f[len_max_str];
   while (fgets(str_f, sizeof str_f, file) != NULL) {
-    // printf("строка: %s\n", str_f);
-    // printf("len = %d\n", strlen(str_f));
     if (strlen(str_f) < 7) {
       continue;
     }
     // найдем 'v ', проверим на символы и запарсим
     if (str_f[0] == 'v' && str_f[1] == ' ') {
       // если нет лишних символов, то парсим строку
-      if (is_valid_sting(str_f) && !is_empty_str(str_f)) {
+      if (is_valid_string(str_f) && !is_empty_str(str_f)) {
         set_vertices(str_f, object_data, &rowV);
       }
 
     } else if (str_f[0] == 'f' && str_f[1] == ' ') {
-      if (is_valid_sting(str_f) && !is_empty_str(str_f)) {
-        if (is_valid_face_sting(str_f, object_data, &rowP, &err) && !err) {
+      if (is_valid_string(str_f) && !is_empty_str(str_f)) {
+        if (is_valid_face_string(str_f, object_data, &rowP, &err) && !err) {
           set_polygons(str_f, object_data, &rowP);
         } else if (err) {
           break;
@@ -207,7 +205,7 @@ static int is_empty_str(char *str_f) {
   return res;
 }
 
-static int is_valid_sting(char *str_f) {
+static int is_valid_string(char *str_f) {
   // проверим разрешенные символы
   int res = 1;
   int i = 1;
@@ -216,7 +214,7 @@ static int is_valid_sting(char *str_f) {
   // начинаем проверять строку без 'v/f' вначале
   if (str_f[0] == 'v') {
     while ((ch = str_f[i]) && (ch != '\0' && ch != '\n')) {
-      if (!(strchr("+-1234567890. ", ch))) {
+      if (!(strchr("+-1234567890. \r", ch))) {
         res = 0;
         break;
       }
@@ -225,7 +223,7 @@ static int is_valid_sting(char *str_f) {
 
   } else if (str_f[0] == 'f') {
     while ((ch = str_f[i]) && (ch != '\0' && ch != '\n')) {
-      if (!(strchr("1234567890 /", ch))) {
+      if (!(strchr("1234567890 /\r", ch))) {
         res = 0;
         break;
       }
@@ -236,7 +234,7 @@ static int is_valid_sting(char *str_f) {
   return res;
 }
 
-static int is_valid_face_sting(char *str_f, object_t *object_data, int *rowP,
+static int is_valid_face_string(char *str_f, object_t *object_data, int *rowP,
                                int *err) {
   // проверим разрешенные символы
   int res = 1;
@@ -307,7 +305,7 @@ static void set_polygons(char *str_f, object_t *object_data, int *rowP) {
     // сколько чисел в строке f 1 2 3 4 5 6 и запишем в vertices_amount_in_P
     while ((ch = str_f[i]) && (ch != '\0' && ch != '\n')) {
       if ((strchr("1234567890", ch)) && (strchr(" ", str_f[i - 1]))) {
-        object_data->polygons[*rowP].vertex_indices[j] = atoi(str_f + i);
+        object_data->polygons[*rowP].vertex_indices[j] = atoi(str_f + i) - 1;
         j++;
         success++;
       }

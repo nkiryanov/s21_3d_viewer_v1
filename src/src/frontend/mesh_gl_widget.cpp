@@ -75,67 +75,41 @@ void MeshGLWidget::initVertexBuffer() {
   vertex_array_object.release();
 }
 
-void MeshGLWidget::destroyVertexBuffer() { vertex_buffer.destroy(); }
+void MeshGLWidget::destroyVertexBuffer() {
+  vertex_buffer.destroy();
+  vertex_array_object.destroy();
+}
 
-void MeshGLWidget::initElementBuffers() {
-  // Aggregate same count indices polygons in the same storage and
-  // buffer to GPU
+void MeshGLWidget::initElementBuffer() {
+  // Store all the polygons in one buffer element array.
+  // Cause the number of polygons may vary we should draw the polygons with
+  // `glMultiDrawElements` and have to store count indices per polygons and
+  // calculate the offset in the buffer.
 
-  // The temp structure to store glBufferNumber and polygons indexes that
-  // is awaiting to upload to GPU.
-  // It's needed to accumulate polygons with same indexes count.
-  struct DataToUpload {
-    GLuint buffer_number;
-    std::vector<GLuint> vertex_indices;
-  };
-
-  std::unordered_map<uint32_t, DataToUpload> data_per_buffer;
+  std::vector<GLuint> polygon_indices;
+  GLuint buffer_offset = 0;
 
   for (uint32_t i = 0; i != mesh.count_polygons; ++i) {
-    polygon_t polygon = mesh.polygons[i];
+    auto& polygon = mesh.polygons[i];
 
-    auto& data = data_per_buffer[polygon.count_indices];
+    element_indices_counts.push_back(polygon.count_indices);
+    element_offsets.push_back((void*)(size_t)buffer_offset);
 
-    // Generate EBO if buffer empty
-    if (data.vertex_indices.size() == 0) glGenBuffers(1, &data.buffer_number);
+    buffer_offset += polygon.count_indices * sizeof(GLuint);
 
-    // Combine polygons with same indexes count to same buffer_data
-    for (uint32_t i = 0; i != polygon.count_indices; ++i) {
-      GLuint index = (GLuint)polygon.vertex_indices[i];
-
-      if (index < 0 || index >= mesh.count_vertices) {
-        qDebug() << "Non consistent vertex found: " << index;
-        continue;
-      }
-
-      data.vertex_indices.push_back((GLuint)polygon.vertex_indices[i]);
+    for (uint32_t j = 0; j != polygon.count_indices; ++j) {
+      polygon_indices.push_back((GLuint)polygon.vertex_indices[j]);
     }
   }
 
-  for (const auto& [_, data] : data_per_buffer) {
-    ElementBuffer element_buffer;
-
-    element_buffer.buffer_number = data.buffer_number;
-    element_buffer.count_primitives = data.vertex_indices.size();
-    GLuint buffer_size = data.vertex_indices.size() * sizeof(GLuint);
-
-    element_buffers.push_back(element_buffer);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer.buffer_number);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer_size,
-                 data.vertex_indices.data(), GL_STATIC_DRAW);
-  }
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  element_buffer.create();
+  element_buffer.bind();
+  element_buffer.allocate(polygon_indices.data(),
+                          polygon_indices.size() * sizeof(GLuint));
+  element_buffer.release();
 }
 
-void MeshGLWidget::destroyElementBuffers() {
-  for (auto& element_buffer : element_buffers) {
-    glGenBuffers(1, &(element_buffer.buffer_number));
-  }
-
-  element_buffers.clear();
-}
+void MeshGLWidget::destroyElementBuffer() { element_buffer.destroy(); }
 
 void MeshGLWidget::drawBackground() {
   glClearColor(mesh_state.background.redF(), mesh_state.background.greenF(),
@@ -174,13 +148,10 @@ void MeshGLWidget::drawLines() {
 
   program.setUniformValue("FragColor", mesh_state.lines_color);
 
-  for (const auto& element_buffer : element_buffers) {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer.buffer_number);
-    glDrawElements(GL_LINE_LOOP, element_buffer.count_primitives,
-                   GL_UNSIGNED_INT, nullptr);
-  }
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  element_buffer.bind();
+  glMultiDrawElements(GL_LINES, element_indices_counts.data(), GL_UNSIGNED_INT,
+                      element_offsets.data(), element_offsets.size());
+  element_buffer.release();
 }
 
 void MeshGLWidget::CalculateMVPMatrix() {
@@ -206,7 +177,10 @@ int MeshGLWidget::loadObject(const QString& filename) {
   if (mesh_state.is_loaded) {
     free_object(&mesh);
     destroyVertexBuffer();
-    destroyElementBuffers();
+    destroyElementBuffer();
+    element_indices_counts.clear();
+    element_offsets.clear();
+
     mesh_state.is_loaded = false;
   }
 
@@ -216,9 +190,9 @@ int MeshGLWidget::loadObject(const QString& filename) {
   bool is_error_happened = (load_status == 0) ? false : true;
 
   if (!is_error_happened) {
-    object_normalize(0.5, &mesh);
+    object_normalize(0.8, &mesh);
     initVertexBuffer();
-    initElementBuffers();
+    initElementBuffer();
     mesh_state.is_loaded = true;
   }
 

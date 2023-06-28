@@ -48,11 +48,6 @@ struct MeshState {
   GLfloat scaling = 1.0;
 };
 
-struct ElementBuffer {
-  GLuint buffer_number;
-  GLuint count_primitives;
-};
-
 class MeshGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
  public:
   MeshGLWidget(QWidget *parent = nullptr) : QOpenGLWidget(parent) {}
@@ -63,15 +58,18 @@ class MeshGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
 
  private:
   QOpenGLShaderProgram program;
-  QOpenGLBuffer vertex_buffer;
+  QOpenGLBuffer vertex_buffer = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+  QOpenGLBuffer element_buffer = QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
   QOpenGLVertexArrayObject vertex_array_object;
 
   QMatrix4x4 mvp_matrix;
 
-  // Number of indexes in polygons in one mesh may vary.
-  // We create buffer for all the polygons and render them without
-  // QT wrappers cause it's little bit more flexible
-  std::vector<ElementBuffer> element_buffers;
+  // Structures to access elements (polygons) buffered in GPU (offset and count
+  // of polygons).
+  // The data stored in separate structures cause it's required by
+  // OpenGL drawing functions
+  std::vector<GLsizei> element_indices_counts;
+  std::vector<GLvoid *> element_offsets;
 
   object_t mesh;
   MeshState mesh_state;
@@ -79,8 +77,8 @@ class MeshGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   void initShaders();
   void initVertexBuffer();
   void destroyVertexBuffer();
-  void initElementBuffers();
-  void destroyElementBuffers();
+  void initElementBuffer();
+  void destroyElementBuffer();
 
   void CalculateMVPMatrix();
 

@@ -19,12 +19,6 @@
 #include "gif.h"
 #include "ui/ui_model_viewer.h"
 
-extern "C" {
-#include "backend/polygon_t.h"
-#include "backend/transformations.h"
-#include "backend/vector_t.h"
-}
-
 inline void initModelViewerResources() { Q_INIT_RESOURCE(resources); }
 
 void saveImageToFile(const QImage &image, const QString &filePath) {
