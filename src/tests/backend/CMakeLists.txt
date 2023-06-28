@@ -4,6 +4,7 @@ add_executable("tests_backend"
     tests_main.c
     master_suite.c
     tests_transformations.c
+    tests_loader.c
     ${HEADER_LIST}
 )
 

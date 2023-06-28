@@ -9,6 +9,7 @@ int main(void) {
   sr = srunner_create(make_master_suite());
 
   srunner_add_suite(sr, make_transformations_suite());
+  srunner_add_suite(sr, make_loader_suite());
 
   // We set NOFORK mode for debug ability and testing with valgrind
   srunner_set_fork_status(sr, CK_NOFORK);

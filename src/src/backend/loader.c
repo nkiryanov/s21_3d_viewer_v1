@@ -15,7 +15,7 @@ static int set_struct(FILE *file, object_t *object_data, int len_max_str);
 static int is_empty_str(char *str_f);
 static int is_valid_string(char *str_f);
 static int is_valid_face_string(char *str_f, object_t *object_data, int *rowP,
-                               int *err);
+                                int *err);
 static void set_vertices(char *str_f, object_t *object_data, int *rowV);
 static void set_polygons(char *str_f, object_t *object_data, int *rowP);
 static void set_initial_values_to_null(object_t *object);
@@ -186,7 +186,6 @@ static int set_struct(FILE *file, object_t *object_data, int len_max_str) {
   if (object_data->count_vertices == 0 || object_data->count_polygons == 0) {
     err = 1;
   }
-
   return err;
 }
 
@@ -235,7 +234,7 @@ static int is_valid_string(char *str_f) {
 }
 
 static int is_valid_face_string(char *str_f, object_t *object_data, int *rowP,
-                               int *err) {
+                                int *err) {
   // проверим разрешенные символы
   int res = 1;
   int i = 2;  // начинаем проверять строку без 'v/f ' вначале
@@ -245,11 +244,6 @@ static int is_valid_face_string(char *str_f, object_t *object_data, int *rowP,
   while ((ch = str_f[i]) && (ch != '\0' && ch != '\n')) {
     if ((strchr("1234567890", ch)) && (strchr(" ", str_f[i - 1]))) {
       object_data->polygons[*rowP].count_indices++;
-
-      // printf("ch = %c ", ch);
-      // printf("*rowP = %d ", *rowP);
-      // printf("object_data->polygons[*rowP].amount = %d\n",
-      // object_data->polygons[*rowP].amount);
     }
     i++;
   }
@@ -270,8 +264,6 @@ static int is_valid_face_string(char *str_f, object_t *object_data, int *rowP,
 
 static void set_vertices(char *str_f, object_t *object_data, int *rowV) {
   // парс строки типа 'v 1 2 3'
-  // printf("№ %d строка: %s", *rowV, str_f);
-
   // записываем координаты в структуру
   int success = 0;
   char ch_space = ' ';
@@ -287,15 +279,12 @@ static void set_vertices(char *str_f, object_t *object_data, int *rowV) {
     object_data->vertices[*rowV].x = x;
     object_data->vertices[*rowV].y = y;
     object_data->vertices[*rowV].z = z;
-
     (*rowV)++;
   }
 }
 
 static void set_polygons(char *str_f, object_t *object_data, int *rowP) {
   // парс строки типа 'f 1 2 3'
-  // printf("№ %d строка: %s", *rowP, str_f);
-
   uint32_t success = 0;
   int i = 2;  // начинаем проверять строку без 'f ' вначале
   int j = 0;  // столбец в polygons[*rowP]
@@ -311,7 +300,6 @@ static void set_polygons(char *str_f, object_t *object_data, int *rowP) {
       }
       i++;
     }
-    // printf("\n");
     // если успешно записали
     if (success == object_data->polygons[*rowP].count_indices) {
       (*rowP)++;
