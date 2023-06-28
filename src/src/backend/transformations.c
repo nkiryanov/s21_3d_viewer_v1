@@ -10,7 +10,7 @@ static double convert_degrees_to_radians(double degree) {
 }
 
 static void mul_object_on_matrix(vector_t matrix[3], object_t *object) {
-  for (uint32_t i = 0; i != object->vertices_amount; ++i) {
+  for (uint32_t i = 0; i != object->count_vertices; ++i) {
     vector_t *vertex = &(object->vertices[i]);
     vector_t rotated_vertex = {.x = 0.0, .y = 0.0, .z = 0.0};
 
@@ -30,7 +30,7 @@ static void get_object_midpoint_vector(const object_t *object,
   vector_t min_vector = {.x = INFINITY, .y = INFINITY, .z = INFINITY};
   vector_t max_vector = {.x = -INFINITY, .y = -INFINITY, .z = -INFINITY};
 
-  for (uint32_t i = 0; i != object->vertices_amount; ++i) {
+  for (uint32_t i = 0; i != object->count_vertices; ++i) {
     vector_t vertex = object->vertices[i];
     if (vertex.x < min_vector.x) min_vector.x = vertex.x;
     if (vertex.x > max_vector.x) max_vector.x = vertex.x;
@@ -48,7 +48,7 @@ static void get_object_midpoint_vector(const object_t *object,
 static double get_absolute_max_among_object(const object_t *object) {
   double absolute_max = 0.0;
 
-  for (uint32_t i = 0; i != object->vertices_amount; ++i) {
+  for (uint32_t i = 0; i != object->count_vertices; ++i) {
     vector_t vertex = object->vertices[i];
     if (fabs(vertex.x) > absolute_max) absolute_max = fabs(vertex.x);
     if (fabs(vertex.y) > absolute_max) absolute_max = fabs(vertex.y);
@@ -59,19 +59,19 @@ static double get_absolute_max_among_object(const object_t *object) {
 }
 
 void object_move_x_axis(double x, object_t *object) {
-  for (uint32_t i = 0; i != object->vertices_amount; ++i) {
+  for (uint32_t i = 0; i != object->count_vertices; ++i) {
     object->vertices[i].x += x;
   }
 }
 
 void object_move_y_axis(double y, object_t *object) {
-  for (uint32_t i = 0; i != object->vertices_amount; ++i) {
+  for (uint32_t i = 0; i != object->count_vertices; ++i) {
     object->vertices[i].y += y;
   }
 }
 
 void object_move_z_axis(double z, object_t *object) {
-  for (uint32_t i = 0; i != object->vertices_amount; ++i) {
+  for (uint32_t i = 0; i != object->count_vertices; ++i) {
     object->vertices[i].z += z;
   }
 }

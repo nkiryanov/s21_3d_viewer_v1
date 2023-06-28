@@ -5,8 +5,8 @@ INSTALL_DIR := ../_install_dir
 COVERAGE_REPORT_DIR := $(BUILD_DIR)/coverage
 COVERAGE_REPORT := $(BUILD_DIR)/coverage.info
 
-SRC := $(shell find $(CMAKE_ROOT) -name "*.c" -o -name "*.cpp")
-HEADERS := $(shell find $(CMAKE_ROOT) -name "*.h" -o -name "*.hpp")
+SRC := $(shell find $(CMAKE_ROOT) \( -name "*.h" -o -name "*.hpp" \) -not -path "$(CMAKE_ROOT)/extern/*")
+HEADERS := $(shell find $(CMAKE_ROOT) \( -name "*.h" -o -name "*.hpp" \) -not -path "$(CMAKE_ROOT)/extern/*")
 
 DCMAKE_BUILD_TYPE := Debug
 
@@ -57,18 +57,11 @@ dist:
 	app cmake docs include src tests CMakeLists.txt Makefile
 
 echo:
-	@echo "HEADERS = ${HEADERS}"
+	@echo "HEADERS = $(HEADERS)"
+	@echo "SRC = $(SRC)"
 
 clean: uninstall
 	rm -rf $(BUILD_DIR)
 
 build_dir:
 	mkdir -p $(BUILD_DIR)
-
-style:
-	clang-format -style=google -i src/backend/parser.c
-	clang-format -style=google -n src/backend/parser.c
-	clang-format -style=google -i include/backend/parser.h
-	clang-format -style=google -n include/backend/parser.h
-	clang-format -style=google -i tests/backend/tests_parser.c
-	clang-format -style=google -n tests/backend/tests_parser.c

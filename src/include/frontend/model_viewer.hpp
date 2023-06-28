@@ -4,8 +4,6 @@
 #include <QMainWindow>
 #include <QTimer>
 
-#include "frontend/object_gl_widget.hpp"
-
 QT_BEGIN_NAMESPACE namespace Ui { class ModelViewer; }
 QT_END_NAMESPACE
 
@@ -15,11 +13,13 @@ class ModelViewer : public QMainWindow {
   Q_OBJECT
 
  public:
-  ModelViewer(QWidget *parent = nullptr);
+  ModelViewer(QWidget* parent = nullptr);
   ~ModelViewer();
 
  private slots:
-  void on_pushButton_build_clicked();
+
+  void build_new_object();
+  void make_screenshot();
 
   void on_zoom_slider_valueChanged(int value);
 
@@ -37,7 +37,6 @@ class ModelViewer : public QMainWindow {
   void on_rotate_scroll_bar_z_valueChanged(int value);
 
   void on_actionOpen_triggered();
-  void on_actionBackground_Color_triggered();
   void on_actionSave_picture_triggered();
 
   void on_sizeNodes_radioButton_none_clicked();
@@ -46,9 +45,27 @@ class ModelViewer : public QMainWindow {
   void on_edges_solid_radioButton_clicked();
   void on_edges_dashed_radioButton_clicked();
 
+  void on_pushButton_set_bg_color_clicked();
+
+  void saveSettings();
+  void loadSettings();
+
+  void on_pushButton_screencast_clicked();
+  void startGifRecording(const QString& gif_fileName);
+  void saveGifAnimation(const QString& gif_fileName,
+                        const QVector<QImage>& frames);
+
+  void onTimeout();
+
+  void on_radioButton_central_projection_clicked();
+  void on_radioButton_parallel_projection_clicked();
+
+  void on_pushButton_openFile_clicked();
+
+  void on_pushButton_screenshot_clicked();
+
  private:
-  Ui::ModelViewer *ui;
-  ObjectGLWidget *object_widget;
+  Ui::ModelViewer* ui;
 };
 
 }  // namespace ViewerFrontend

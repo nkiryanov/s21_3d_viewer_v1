@@ -3,7 +3,7 @@ file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/include/backend/*
 add_library(
   "3D_Viewer_backend" STATIC
   transformations.c
-  parser.c
+  loader.c
   ${HEADER_LIST}
 )
 
