@@ -4,6 +4,12 @@ INSTALL_DIR := ../_install_dir
 
 COVERAGE_REPORT_DIR := $(BUILD_DIR)/coverage
 COVERAGE_REPORT := $(BUILD_DIR)/coverage.info
+GCOV_TOOL := $(shell which gcov)
+
+ifeq ($(shell uname), Darwin)
+	GCOV_TOOL := /usr/bin/gcov
+endif
+
 
 SRC := $(shell find $(CMAKE_ROOT) \( -name "*.h" -o -name "*.hpp" \) -not -path "$(CMAKE_ROOT)/extern/*")
 HEADERS := $(shell find $(CMAKE_ROOT) \( -name "*.h" -o -name "*.hpp" \) -not -path "$(CMAKE_ROOT)/extern/*")
@@ -37,7 +43,7 @@ tests: build
 	make -C $(BUILD_DIR) test
 
 coverage_report: tests
-	lcov --capture --directory $(BUILD_DIR)/src/ --output-file=$(COVERAGE_REPORT)
+	lcov --capture --directory $(BUILD_DIR)/src/ --output-file=$(COVERAGE_REPORT) --gcov-tool $(GCOV_TOOL)
 
 gcov_report: coverage_report
 	genhtml $(COVERAGE_REPORT) --output-directory $(COVERAGE_REPORT_DIR)
