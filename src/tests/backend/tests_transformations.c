@@ -3,9 +3,9 @@
 #include "backend/object_t.h"
 #include "backend/transformations.h"
 
-vector_t vertices[2] = {{0.0, 0.0, 0.0}};
+static vector_t vertices[2] = {{0.0, 0.0, 0.0}};
 
-object_t object;
+static object_t object;
 
 static void add_value_to_object_coordinates(double value, object_t *object) {
   for (uint32_t i = 0; i != object->count_vertices; ++i) {
