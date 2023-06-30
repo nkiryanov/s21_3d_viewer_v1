@@ -71,7 +71,6 @@ ModelViewer::ModelViewer(QWidget *parent)
   buttonGroup3->addButton(ui->edges_dashed_radioButton);
   buttonGroup3->addButton(ui->edges_solid_radioButton);
 
-
   loadSettings();
 }
 
@@ -80,22 +79,13 @@ ModelViewer::~ModelViewer() {
   delete ui;
 }
 
-void ModelViewer::on_actionOpen_triggered() {
-  build_new_object();
-}
+void ModelViewer::on_actionOpen_triggered() { build_new_object(); }
 
-void ModelViewer::on_pushButton_openFile_clicked() {
-  build_new_object();
-}
+void ModelViewer::on_pushButton_openFile_clicked() { build_new_object(); }
 
-void ModelViewer::on_actionSave_picture_triggered() {
-  make_screenshot();
-}
+void ModelViewer::on_actionSave_picture_triggered() { make_screenshot(); }
 
-
-void ModelViewer::on_pushButton_screenshot_clicked() {
-  make_screenshot();
-}
+void ModelViewer::on_pushButton_screenshot_clicked() { make_screenshot(); }
 
 void ModelViewer::make_screenshot() {
   // Grab a screenshot of the MeshGLWidget
@@ -112,12 +102,13 @@ void ModelViewer::make_screenshot() {
 }
 
 void ModelViewer::build_new_object() {
-  QString filename = QFileDialog::getOpenFileName(this, "Choose .obj...", ".", "OBJ File (*.obj)");
+  QString filename = QFileDialog::getOpenFileName(this, "Choose .obj...", ".",
+                                                  "OBJ File (*.obj)");
 
-  QLabel* buildStatusPicLabel = ui->build_status_pic_label;
-  QLabel* nodesValueLabel = ui->nodes_value_label;
-  QLabel* edgesValueLabel = ui->edges_value_label;
-  QLabel* buildStatusLabel = ui->build_status_label;
+  QLabel *buildStatusPicLabel = ui->build_status_pic_label;
+  QLabel *nodesValueLabel = ui->nodes_value_label;
+  QLabel *edgesValueLabel = ui->edges_value_label;
+  QLabel *buildStatusLabel = ui->build_status_label;
 
   int width_status_image = ui->build_status_pic_label->width();
   int height_status_image = ui->build_status_pic_label->height();
@@ -141,7 +132,8 @@ void ModelViewer::build_new_object() {
     buildStatusLabel->setText(QString("Success"));
 
     QPixmap pixmap(":/images/success.png");
-    pixmap = pixmap.scaled(width_status_image, height_status_image, Qt::KeepAspectRatio);  // Масштабирование изображения
+    pixmap = pixmap.scaled(width_status_image, height_status_image,
+                           Qt::KeepAspectRatio);  // Масштабирование изображения
     buildStatusPicLabel->setPixmap(pixmap);
   } else {
     ui->file_name_label->setText("");
@@ -150,11 +142,11 @@ void ModelViewer::build_new_object() {
     buildStatusLabel->setText(QString("Error"));
 
     QPixmap pixmap(":/images/error.png");
-    pixmap = pixmap.scaled(width_status_image, height_status_image, Qt::KeepAspectRatio);  // Масштабирование изображения
+    pixmap = pixmap.scaled(width_status_image, height_status_image,
+                           Qt::KeepAspectRatio);  // Масштабирование изображения
     buildStatusPicLabel->setPixmap(pixmap);
   }
 }
-
 
 void ModelViewer::on_zoom_slider_valueChanged(int value) {
   ui->zoom_value_label->setText(QString::number(value) + "%");
