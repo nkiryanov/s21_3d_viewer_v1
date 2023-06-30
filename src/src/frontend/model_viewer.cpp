@@ -58,9 +58,19 @@ ModelViewer::ModelViewer(QWidget *parent)
   ui->color_bg_widget->setPalette(palette);
   ui->color_bg_widget->setAutoFillBackground(true);
 
-  QButtonGroup *buttonGroup = new QButtonGroup(this);
-  buttonGroup->addButton(ui->radioButton_central_projection);
-  buttonGroup->addButton(ui->radioButton_parallel_projection);
+  QButtonGroup *buttonGroup1 = new QButtonGroup(this);
+  buttonGroup1->addButton(ui->radioButton_central_projection);
+  buttonGroup1->addButton(ui->radioButton_parallel_projection);
+
+  QButtonGroup *buttonGroup2 = new QButtonGroup(this);
+  buttonGroup2->addButton(ui->sizeNodes_radioButton_circle);
+  buttonGroup2->addButton(ui->sizeNodes_radioButton_square);
+  buttonGroup2->addButton(ui->sizeNodes_radioButton_none);
+
+  QButtonGroup *buttonGroup3 = new QButtonGroup(this);
+  buttonGroup3->addButton(ui->edges_dashed_radioButton);
+  buttonGroup3->addButton(ui->edges_solid_radioButton);
+
 
   loadSettings();
 }
@@ -358,17 +368,15 @@ void ModelViewer::loadSettings() {
   ui->color_bg_widget->setPalette(palette);
   ui->color_bg_widget->setAutoFillBackground(true);
 
-  // Load edges color
-  loaded_color = QColor(settings.value("edgesRed", 0).toInt(),
-                        settings.value("edgesGreen", 0).toInt(),
-                        settings.value("edgesBlue", 0).toInt());
+  loaded_color = QColor(settings.value("edgesRed", 255).toInt(),
+                        settings.value("edgesGreen", 255).toInt(),
+                        settings.value("edgesBlue", 255).toInt());
   ui->MeshGLWidget->setLineColor(loaded_color);
   palette.setColor(QPalette::Window, loaded_color);
   ui->color_edges_widget->setPalette(palette);
   ui->color_edges_widget->setAutoFillBackground(true);
 
-  // Load edges color
-  loaded_color = QColor(settings.value("nodesRed", 0).toInt(),
+  loaded_color = QColor(settings.value("nodesRed", 255).toInt(),
                         settings.value("nodesGreen", 0).toInt(),
                         settings.value("nodesBlue", 0).toInt());
   ui->MeshGLWidget->setPointsColor(loaded_color);
