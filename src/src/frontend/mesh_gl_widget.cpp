@@ -29,8 +29,7 @@ void MeshGLWidget::initializeGL() {
 }
 
 void MeshGLWidget::paintGL() {
-  glClearColor(mesh_state.background.redF(), mesh_state.background.greenF(),
-               mesh_state.background.blueF(), mesh_state.background.alphaF());
+  drawBackground();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Edge case. Do not draw the object if it not loaded
@@ -126,6 +125,11 @@ void MeshGLWidget::initElementBuffer() {
   element_buffer.allocate(polygon_indices.data(),
                           mesh_edges_count * sizeof(GLuint));
   element_buffer.release();
+}
+
+void MeshGLWidget::drawBackground() {
+  glClearColor(mesh_state.background.redF(), mesh_state.background.greenF(),
+               mesh_state.background.blueF(), mesh_state.background.alphaF());
 }
 
 void MeshGLWidget::drawPointsIfNeeded() {

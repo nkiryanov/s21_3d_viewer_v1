@@ -77,6 +77,7 @@ class MeshGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
 
   void CalculateMVPMatrix();
 
+  void drawBackground();
   void drawPointsIfNeeded();
   void drawLines();
 
