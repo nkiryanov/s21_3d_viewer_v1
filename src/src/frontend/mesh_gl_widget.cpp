@@ -93,7 +93,24 @@ void MeshGLWidget::initElementBuffer() {
   // lines, specifying the start and end points for each line. This approach
   // requires more memory but saves CPU cycles.
 
-  std::vector<GLuint> polygon_indices(0);
+  std::vector<std::pair<GLuint, GLuint>> mesh_lines(0);
+  std::unordered_set<std::string> existed_lines;
+
+  // lambda to add line to mesh_lines if it not added already
+  auto add_line_if_not_added =
+      [](const std::pair<GLuint, GLuint>& line,
+         std::unordered_set<std::string>& existed_lines,
+         std::vector<std::pair<GLuint, GLuint>>& mesh_lines) -> void {
+    std::string strait_line =
+        std::to_string(line.first) + "-" + std::to_string(line.second);
+    std::string opposite_line =
+        std::to_string(line.second) + "-" + std::to_string(line.first);
+
+    auto [iter_1, strait_inserted] = existed_lines.insert(strait_line);
+    auto [iter_2, opposite_inserted] = existed_lines.insert(opposite_line);
+
+    if (strait_inserted || opposite_inserted) mesh_lines.push_back(line);
+  };
 
   for (uint32_t i = 0; i != mesh.count_polygons; ++i) {
     auto& polygon = mesh.polygons[i];
@@ -105,8 +122,8 @@ void MeshGLWidget::initElementBuffer() {
     for (uint32_t j = 0; j != polygon.count_indices; ++j) {
       index = (GLuint)polygon.vertex_indices[j];
       if (j != 0) {
-        polygon_indices.push_back(previous_index);
-        polygon_indices.push_back(index);
+        add_line_if_not_added({previous_index, index}, existed_lines,
+                              mesh_lines);
       } else {
         first_index = index;
       }
@@ -114,16 +131,16 @@ void MeshGLWidget::initElementBuffer() {
     }
 
     if (previous_index != first_index) {
-      polygon_indices.push_back(previous_index);
-      polygon_indices.push_back(first_index);
+      add_line_if_not_added({previous_index, first_index}, existed_lines,
+                            mesh_lines);
     }
   }
 
-  mesh_edges_count = polygon_indices.size();
+  mesh_count_lines = mesh_lines.size();
   element_buffer.create();
   element_buffer.bind();
-  element_buffer.allocate(polygon_indices.data(),
-                          mesh_edges_count * sizeof(GLuint));
+  element_buffer.allocate(mesh_lines.data(),
+                          mesh_count_lines * sizeof(GLuint) * 2);
   element_buffer.release();
 }
 
@@ -164,7 +181,7 @@ void MeshGLWidget::drawLines() {
   program->setUniformValue("FragColor", mesh_state.lines_color);
 
   element_buffer.bind();
-  glDrawElements(GL_LINES, mesh_edges_count, GL_UNSIGNED_INT, nullptr);
+  glDrawElements(GL_LINES, mesh_count_lines * 2, GL_UNSIGNED_INT, nullptr);
   element_buffer.release();
 }
 
@@ -188,21 +205,29 @@ void MeshGLWidget::CalculateMVPMatrix() {
 }
 
 bool MeshGLWidget::loadObject(const QString& filename) {
-  if (mesh_state.is_loaded) Cleanup();
+  object_t object_to_load = {
+      .vertices = NULL,
+      .count_vertices = 0,
+      .polygons = NULL,
+      .count_polygons = 0,
+  };
 
   QByteArray filename_bytes = filename.toLocal8Bit();
-  int load_status = load_object(filename_bytes.data(), &mesh);
+  int load_status = load_object(filename_bytes.data(), &object_to_load);
+  bool is_loaded = (load_status == 0) ? true : false;
 
-  bool is_error_happened = (load_status == 0) ? false : true;
+  if (is_loaded) {
+    if (mesh_state.is_loaded) Cleanup();
 
-  if (!is_error_happened) {
+    mesh = object_to_load;
     object_normalize(0.8, &mesh);
     initVertexBuffer();
     initElementBuffer();
     mesh_state.is_loaded = true;
   }
 
-  return is_error_happened;
+  update();
+  return is_loaded;
 }
 
 void MeshGLWidget::Cleanup() {
@@ -214,7 +239,7 @@ void MeshGLWidget::Cleanup() {
   vertex_buffer.destroy();
   element_buffer.destroy();
 
-  mesh_edges_count = 0;
+  mesh_count_lines = 0;
   mesh_state.is_loaded = false;
 
   free_object(&mesh);
@@ -293,5 +318,9 @@ void MeshGLWidget::setCentralPerspective(bool is_central_perspective) {
   mesh_state.is_perspective = is_central_perspective;
   update();
 }
+
+GLuint MeshGLWidget::getCountNodes() { return (GLuint)mesh.count_vertices; }
+
+GLuint MeshGLWidget::getCountEdges() { return mesh_count_lines; }
 
 }  // namespace ViewerFrontend

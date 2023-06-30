@@ -1,5 +1,6 @@
 #include "backend/loader.h"
 
+#include <locale.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -28,6 +29,8 @@ void set_initial_values_to_null(object_t *object) {
 }
 
 int load_object(char *file_model, object_t *object_data) {
+  setlocale(LC_NUMERIC, "C");
+
   int err = 0;
 
   // откроем файл

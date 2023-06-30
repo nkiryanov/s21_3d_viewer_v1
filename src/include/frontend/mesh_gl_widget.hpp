@@ -67,7 +67,7 @@ class MeshGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
 
   object_t mesh;
   MeshState mesh_state;
-  GLuint mesh_edges_count;
+  GLuint mesh_count_lines;
 
   void initShaders();
   void initVertexBuffer();
@@ -99,6 +99,8 @@ class MeshGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
   void setPointsStyle(PointsStyle style);
   void setBackground(QColor &color);
   void setCentralPerspective(bool is_central_perspective);
+  GLuint getCountNodes();
+  GLuint getCountEdges();
 };
 
 }  // namespace ViewerFrontend
