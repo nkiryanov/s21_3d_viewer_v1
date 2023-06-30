@@ -17,4 +17,8 @@ target_include_directories(
     PRIVATE ${CHECK_INCLUDE_DIRS}
 )
 
-add_test(NAME tests_backend COMMAND tests_backend)
+add_test(
+    NAME tests_backend
+    COMMAND tests_backend
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)

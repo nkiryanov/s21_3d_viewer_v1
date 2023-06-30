@@ -6,100 +6,97 @@
 #include "backend/loader.h"
 #include "backend/object_t.h"
 
-START_TEST(test_no_file) {
-  int err_orig = 2;
-  int err_my;
-  object_t object_my;
-  err_my = load_object("no_file.obj", &object_my);
-  ck_assert_int_eq(err_orig, err_my);
+#define OBJ_READ_OK 0
+#define OBJ_FILE_INCORRECT 1
+#define OBJ_FILE_NOT_FOUND 2
+
+static int returned;
+static object_t object = {
+    .vertices = NULL,
+    .count_vertices = 0,
+    .polygons = NULL,
+    .count_polygons = 0,
+};
+
+static void setup(void) {
+  // Set returned to not possible values
+  returned = 990;
+}
+
+static void teardown(void) {
+  free_object(&object);
+}
+
+START_TEST(test_not_existed_file) {
+  returned = load_object("no_existed_file.obj", &object);
+
+  ck_assert_int_eq(returned, OBJ_FILE_NOT_FOUND);
+  ck_assert_int_eq(object.count_vertices, 0);
+  ck_assert_ptr_null(object.vertices);
+  ck_assert_int_eq(object.count_polygons, 0);
+  ck_assert_ptr_null(object.polygons);
 }
 
 START_TEST(test_empty_file) {
-  int err_orig = 1;
-  int err_my;
-  object_t object_my;
-  err_my = load_object("../../../src/tests/backend/tests_obj/empty_file.obj",
-                       &object_my);
-  ck_assert_int_eq(err_orig, err_my);
+  returned = load_object("fixtures/empty_file.obj", &object);
+
+  ck_assert_int_eq(returned, OBJ_FILE_INCORRECT);
+  ck_assert_int_eq(object.count_vertices, 0);
+  ck_assert_ptr_null(object.vertices);
+  ck_assert_int_eq(object.count_polygons, 0);
+  ck_assert_ptr_null(object.polygons);
 }
 
 START_TEST(test_empty_with_vertices_polygons) {
-  int err_orig = 1;
-  int err_my;
-  object_t object_my;
-  err_my = load_object(
-      "../../../src/tests/backend/tests_obj/"
-      "empty_with_vertices_polygons.obj",
-      &object_my);
-  ck_assert_int_eq(err_orig, err_my);
+  returned = load_object("fixtures/empty_with_vertices_polygons.obj", &object);
+
+  ck_assert_int_eq(returned, OBJ_FILE_INCORRECT);
 }
 
 START_TEST(test_no_vertices) {
-  int err_orig = 1;
-  int err_my;
-  object_t object_my;
-  err_my = load_object("../../../src/tests/backend/tests_obj/no_vertices.obj",
-                       &object_my);
-  ck_assert_int_eq(err_orig, err_my);
+  returned = load_object("fixtures/no_vertices.obj", &object);
+
+  ck_assert_int_eq(returned, OBJ_FILE_INCORRECT);
 }
 
 START_TEST(test_no_polygons) {
-  int err_orig = 1;
-  int err_my;
-  object_t object_my;
-  err_my = load_object("../../../src/tests/backend/tests_obj/no_polygons.obj",
-                       &object_my);
-  ck_assert_int_eq(err_orig, err_my);
+  returned = load_object("fixtures/no_polygons.obj", &object);
+
+  ck_assert_int_eq(returned, OBJ_FILE_INCORRECT);
 }
 
 START_TEST(test_short_vertices) {
-  int err_orig = 1;
-  int err_my;
-  object_t object_my;
-  err_my = load_object(
-      "../../../src/tests/backend/tests_obj/short_vertices.obj", &object_my);
-  ck_assert_int_eq(err_orig, err_my);
+  returned = load_object("fixtures/short_vertices.obj", &object);
+
+  ck_assert_int_eq(returned, OBJ_FILE_INCORRECT);
 }
 
 START_TEST(test_short_polygons) {
-  int err_orig = 1;
-  int err_my;
-  object_t object_my;
-  err_my = load_object(
-      "../../../src/tests/backend/tests_obj/short_polygons.obj", &object_my);
-  ck_assert_int_eq(err_orig, err_my);
+  returned = load_object("fixtures/short_polygons.obj", &object);
+
+  ck_assert_int_eq(returned, OBJ_FILE_INCORRECT);
 }
 
 START_TEST(test_2vertices_2polygons) {
-  double eps = 10e-7;
-  int err_orig = 0;
-  uint32_t vertices_amount_orig = 2;
-  double vertices_orig[2][3] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}};
+  returned = load_object("fixtures/2vertices_2polygons.obj", &object);
 
-  uint32_t polygons_amount_orig = 2;
-  uint32_t polygons_orig[2][3] = {{0, 1, 2}, {3, 4, 5}};
-
-  int err_my;
-  object_t object_my;
-  err_my = load_object(
-      "../../../src/tests/backend/tests_obj/2vertices_2polygons.obj",
-      &object_my);
-
-  ck_assert_int_eq(err_orig, err_my);
-  ck_assert_uint_eq(vertices_amount_orig, object_my.count_vertices);
-  ck_assert_uint_eq(polygons_amount_orig, object_my.count_polygons);
-  for (uint32_t i = 0; i < vertices_amount_orig; i++) {
-    ck_assert_double_eq_tol(vertices_orig[i][0], object_my.vertices[i].x, eps);
-    ck_assert_double_eq_tol(vertices_orig[i][1], object_my.vertices[i].y, eps);
-    ck_assert_double_eq_tol(vertices_orig[i][2], object_my.vertices[i].z, eps);
-  }
-  for (uint32_t i = 0; i < polygons_amount_orig; i++) {
-    for (uint32_t j = 0; j < 3; j++) {
-      ck_assert_uint_eq(polygons_orig[i][j],
-                        object_my.polygons[i].vertex_indices[j]);
-    }
-  }
-  free_object(&object_my);
+  ck_assert_int_eq(returned, OBJ_READ_OK);
+  ck_assert_uint_eq(object.count_vertices, 2);
+  ck_assert_float_eq(object.vertices[0].x, 1.0);
+  ck_assert_float_eq(object.vertices[0].y, 2.0);
+  ck_assert_float_eq(object.vertices[0].z, 3.0);
+  ck_assert_float_eq(object.vertices[1].x, 4.0);
+  ck_assert_float_eq(object.vertices[1].y, 5.0);
+  ck_assert_float_eq(object.vertices[1].z, 6.0);
+  ck_assert_uint_eq(object.count_polygons, 2);
+  ck_assert_uint_eq(object.polygons[0].count_indices, 3);
+  ck_assert_float_eq(object.polygons[0].vertex_indices[0], 0);
+  ck_assert_float_eq(object.polygons[0].vertex_indices[1], 1);
+  ck_assert_float_eq(object.polygons[0].vertex_indices[2], 2);
+  ck_assert_uint_eq(object.polygons[1].count_indices, 3);
+  ck_assert_float_eq(object.polygons[1].vertex_indices[0], 3);
+  ck_assert_float_eq(object.polygons[1].vertex_indices[1], 4);
+  ck_assert_float_eq(object.polygons[1].vertex_indices[2], 5);
 }
 
 START_TEST(test_with_invalid) {
@@ -113,8 +110,7 @@ START_TEST(test_with_invalid) {
 
   int err_my;
   object_t object_my;
-  err_my = load_object("../../../src/tests/backend/tests_obj/with_invalid.obj",
-                       &object_my);
+  err_my = load_object("fixtures/with_invalid.obj", &object_my);
 
   ck_assert_int_eq(err_orig, err_my);
   ck_assert_uint_eq(vertices_amount_orig, object_my.count_vertices);
@@ -144,8 +140,7 @@ START_TEST(test_with_space) {
 
   int err_my;
   object_t object_my;
-  err_my = load_object("../../../src/tests/backend/tests_obj/with_space.obj",
-                       &object_my);
+  err_my = load_object("fixtures/with_space.obj", &object_my);
   ck_assert_int_eq(err_orig, err_my);
   ck_assert_uint_eq(vertices_amount_orig, object_my.count_vertices);
   ck_assert_uint_eq(polygons_amount_orig, object_my.count_polygons);
@@ -174,8 +169,7 @@ START_TEST(test_with_slash) {
 
   int err_my;
   object_t object_my;
-  err_my = load_object("../../../src/tests/backend/tests_obj/with_slash.obj",
-                       &object_my);
+  err_my = load_object("fixtures/with_slash.obj", &object_my);
   ck_assert_int_eq(err_orig, err_my);
   ck_assert_uint_eq(vertices_amount_orig, object_my.count_vertices);
   ck_assert_uint_eq(polygons_amount_orig, object_my.count_polygons);
@@ -212,9 +206,7 @@ START_TEST(test_5vertices_5polygons) {
 
   int err_my;
   object_t object_my;
-  err_my = load_object(
-      "../../../src/tests/backend/tests_obj/5vertices_5polygons.obj",
-      &object_my);
+  err_my = load_object("fixtures/5vertices_5polygons.obj", &object_my);
 
   ck_assert_int_eq(err_orig, err_my);
   ck_assert_uint_eq(vertices_amount_orig, object_my.count_vertices);
@@ -238,8 +230,9 @@ Suite *make_loader_suite(void) {
   TCase *tc = tcase_create("Core");
 
   suite_add_tcase(s, tc);
+  tcase_add_checked_fixture(tc, setup, teardown);
 
-  tcase_add_test(tc, test_no_file);
+  tcase_add_test(tc, test_not_existed_file);
   tcase_add_test(tc, test_empty_file);
   tcase_add_test(tc, test_empty_with_vertices_polygons);
   tcase_add_test(tc, test_no_vertices);
