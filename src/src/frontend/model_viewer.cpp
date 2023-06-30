@@ -397,6 +397,9 @@ void ModelViewer::on_pushButton_screencast_clicked() {
   if (!gif_fileName.isEmpty()) {
     // Запуск процесса записи GIF
     startGifRecording(gif_fileName);
+  } else {
+    ui->pushButton_screencast->setDisabled(false);
+    ui->pushButton_screencast->setText("Screencast");
   }
 }
 
