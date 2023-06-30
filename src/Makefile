@@ -11,7 +11,7 @@ ifeq ($(shell uname), Darwin)
 endif
 
 
-SRC := $(shell find $(CMAKE_ROOT) \( -name "*.h" -o -name "*.hpp" \) -not -path "$(CMAKE_ROOT)/extern/*")
+SRC := $(shell find $(CMAKE_ROOT) \( -name "*.c" -o -name "*.cpp" \) -not -path "$(CMAKE_ROOT)/extern/*")
 HEADERS := $(shell find $(CMAKE_ROOT) \( -name "*.h" -o -name "*.hpp" \) -not -path "$(CMAKE_ROOT)/extern/*")
 
 DCMAKE_BUILD_TYPE := Debug

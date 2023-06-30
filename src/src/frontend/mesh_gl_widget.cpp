@@ -53,12 +53,12 @@ void MeshGLWidget::initShaders() {
   program = new QOpenGLShaderProgram();
   // Compile vertex shader
   if (!program->addShaderFromSourceFile(QOpenGLShader::Vertex,
-                                       ":/shaders/vertex.glsl"))
+                                        ":/shaders/vertex.glsl"))
     close();
 
   // Compile fragment shader
   if (!program->addShaderFromSourceFile(QOpenGLShader::Fragment,
-                                       ":/shaders/fragment.glsl"))
+                                        ":/shaders/fragment.glsl"))
     close();
 
   // Link shader pipeline
@@ -207,7 +207,7 @@ bool MeshGLWidget::loadObject(const QString& filename) {
 
 void MeshGLWidget::Cleanup() {
   if (mesh_state.is_loaded == false) return;
-  
+
   makeCurrent();
 
   vertex_array_object.destroy();

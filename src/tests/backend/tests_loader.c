@@ -23,9 +23,7 @@ static void setup(void) {
   returned = 990;
 }
 
-static void teardown(void) {
-  free_object(&object);
-}
+static void teardown(void) { free_object(&object); }
 
 START_TEST(test_not_existed_file) {
   returned = load_object("no_existed_file.obj", &object);
