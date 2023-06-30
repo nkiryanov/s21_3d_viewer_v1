@@ -118,13 +118,13 @@ void ModelViewer::build_new_object() {
   statusBar()->addPermanentWidget(edgesValueLabel);
 
   bool is_loaded = ui->MeshGLWidget->loadObject(filename);
-  if (!is_loaded) {
+  if (is_loaded) {
     QFileInfo fileInfo(filename);
     QString baseName = fileInfo.fileName();
     ui->file_name_label->setText(baseName);
 
-    int edges = 6;  // нужны функции для подсчета
-    int nodes = 8;
+    GLuint edges = ui->MeshGLWidget->getCountEdges();
+    GLuint nodes = ui->MeshGLWidget->getCountNodes();
     nodesValueLabel->setText("Nodes: " + QString::number(nodes));
     edgesValueLabel->setText("Edges: " + QString::number(edges));
 
